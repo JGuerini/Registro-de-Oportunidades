@@ -1,91 +1,101 @@
-// assets/db.js — Gestión del Excel local con SheetJS
-// El archivo Excel vive en assets/oportunidades.xlsx (simulado en localStorage por restricción de browsers)
-// En un entorno de servidor real, se haría fetch/PUT al archivo.
+// assets/db.js — Gestión de datos via Google Sheets (Apps Script API)
 
-const DB_KEY = 'pipeline_crm_data';
+const API_URL = 'https://script.google.com/a/macros/atos.net/s/AKfycbw80mlzr_JD1ZhF-f5pUgrpVoB0Q1Wd7Xu3D5TuDwcz7AKzIYBRzwl1-WaJa4HQPsfLcA/exec';
 
 const COLUMNS = [
-  'ID',
-  'Nombre de Oportunidad',
-  'Empresa / Cliente',
-  'Contacto',
-  'Email',
-  'Teléfono',
-  'Valor Estimado (USD)',
-  'Moneda',
-  'Etapa',
-  'Probabilidad (%)',
-  'Fecha Creación',
-  'Fecha Cierre Est.',
-  'Responsable',
-  'Origen',
-  'Producto / Servicio',
-  'Descripción',
-  'Próximo Paso',
-  'Estado',
-  'Notas',
+  'ID', 'Nombre de Oportunidad', 'Empresa / Cliente', 'Contacto',
+  'Email', 'Teléfono', 'Valor Estimado (USD)', 'Moneda', 'Etapa',
+  'Probabilidad (%)', 'Fecha Creación', 'Fecha Cierre Est.',
+  'Responsable', 'Origen', 'Producto / Servicio', 'Descripción',
+  'Próximo Paso', 'Estado', 'Notas'
 ];
 
-const ETAPAS = ['Prospecto', 'Calificación', 'Propuesta', 'Negociación', 'Cerrado Ganado', 'Cerrado Perdido'];
+const ETAPAS  = ['Prospecto', 'Calificación', 'Propuesta', 'Negociación', 'Cerrado Ganado', 'Cerrado Perdido'];
 const ORIGENES = ['Referido', 'Web', 'LinkedIn', 'Email frío', 'Evento', 'Partner', 'Otro'];
-const ESTADOS = ['Activa', 'En pausa', 'Cerrada'];
+const ESTADOS  = ['Activa', 'En pausa', 'Cerrada'];
 
-function getData() {
+// ── Cache local para no refrescar en cada operación menor ──
+let _cache = null;
+let _cacheTs = 0;
+const CACHE_TTL = 30000; // 30 segundos
+
+async function getData(forceRefresh = false) {
+  if (!forceRefresh && _cache && (Date.now() - _cacheTs) < CACHE_TTL) {
+    return _cache;
+  }
   try {
-    const raw = localStorage.getItem(DB_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
+    const res = await fetch(API_URL, { method: 'GET' });
+    const json = await res.json();
+    if (json.ok) {
+      _cache = json.data;
+      _cacheTs = Date.now();
+      return _cache;
+    }
+    throw new Error(json.error);
+  } catch (e) {
+    console.error('Error obteniendo datos:', e);
+    return _cache || [];
+  }
 }
 
-function saveData(rows) {
-  localStorage.setItem(DB_KEY, JSON.stringify(rows));
-  exportToExcel(rows);
+async function addOportunidad(data) {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'add', data }),
+    });
+    const json = await res.json();
+    if (json.ok) { _cache = null; return json.id; }
+    throw new Error(json.error);
+  } catch (e) {
+    console.error('Error agregando oportunidad:', e);
+    throw e;
+  }
 }
 
-function generateId() {
-  const rows = getData();
-  const maxId = rows.reduce((m, r) => Math.max(m, parseInt(r['ID']) || 0), 0);
-  return String(maxId + 1).padStart(4, '0');
+async function updateOportunidad(id, data) {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'update', id, data }),
+    });
+    const json = await res.json();
+    if (json.ok) { _cache = null; return true; }
+    throw new Error(json.error);
+  } catch (e) {
+    console.error('Error actualizando oportunidad:', e);
+    throw e;
+  }
 }
 
-function addOportunidad(data) {
-  const rows = getData();
-  const row = { 'ID': generateId(), ...data, 'Fecha Creación': new Date().toLocaleDateString('es-AR') };
-  rows.push(row);
-  saveData(rows);
-  return row['ID'];
+async function deleteOportunidad(id) {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete', id }),
+    });
+    const json = await res.json();
+    if (json.ok) { _cache = null; return true; }
+    throw new Error(json.error);
+  } catch (e) {
+    console.error('Error eliminando oportunidad:', e);
+    throw e;
+  }
 }
 
-function updateOportunidad(id, data) {
-  const rows = getData();
-  const idx = rows.findIndex(r => r['ID'] === id);
-  if (idx === -1) return false;
-  rows[idx] = { ...rows[idx], ...data };
-  saveData(rows);
-  return true;
+async function getOportunidad(id) {
+  const rows = await getData();
+  return rows.find(r => r['ID'] === id) || null;
 }
 
-function deleteOportunidad(id) {
-  const rows = getData().filter(r => r['ID'] !== id);
-  saveData(rows);
-}
-
-function getOportunidad(id) {
-  return getData().find(r => r['ID'] === id) || null;
-}
-
-// ── Export a Excel usando SheetJS ──
-function exportToExcel(rows) {
+function downloadExcel(rows) {
   if (typeof XLSX === 'undefined') return;
   try {
     const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [Object.fromEntries(COLUMNS.map(c => [c, '']))]);
-    // Ancho de columnas
-    ws['!cols'] = COLUMNS.map((_, i) => ({ wch: [6, 30, 25, 20, 25, 15, 18, 10, 16, 14, 14, 14, 18, 14, 20, 30, 25, 12, 25][i] || 15 }));
-
+    ws['!cols'] = [6,30,25,20,25,15,18,10,16,14,14,14,18,14,20,30,25,12,25].map(w => ({ wch: w }));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Oportunidades');
 
-    // Hoja de resumen
     const etapaCounts = {};
     ETAPAS.forEach(e => etapaCounts[e] = 0);
     rows.forEach(r => { if (etapaCounts[r['Etapa']] !== undefined) etapaCounts[r['Etapa']]++; });
@@ -103,31 +113,18 @@ function exportToExcel(rows) {
     ws2['!cols'] = [{ wch: 30 }, { wch: 20 }];
     XLSX.utils.book_append_sheet(wb, ws2, 'Resumen');
 
-    // Guardar como blob en memoria (no se puede escribir a disco desde browser)
     const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const blob = new Blob([wbout], { type: 'application/octet-stream' });
-    const url = URL.createObjectURL(blob);
-
-    // Guardar URL para descarga posterior
-    window._excelBlobUrl = url;
-    window._excelBlob = blob;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'oportunidades.xlsx';
+    a.click();
   } catch(e) {
     console.error('Error exportando Excel:', e);
   }
 }
 
-function downloadExcel() {
-  const rows = getData();
-  exportToExcel(rows);
-  setTimeout(() => {
-    if (window._excelBlobUrl) {
-      const a = document.createElement('a');
-      a.href = window._excelBlobUrl;
-      a.download = 'oportunidades.xlsx';
-      a.click();
-    }
-  }, 100);
-}
-
-// Exponer globalmente
-window.CRM = { getData, saveData, addOportunidad, updateOportunidad, deleteOportunidad, getOportunidad, generateId, downloadExcel, COLUMNS, ETAPAS, ORIGENES, ESTADOS };
+window.CRM = {
+  getData, addOportunidad, updateOportunidad, deleteOportunidad,
+  getOportunidad, downloadExcel, COLUMNS, ETAPAS, ORIGENES, ESTADOS
+};
