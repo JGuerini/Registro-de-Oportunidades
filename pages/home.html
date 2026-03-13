@@ -6,118 +6,26 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="../assets/db.js"></script>
   <style>
-    .hero {
-      background: #0f0f0f;
-      border-radius: 20px;
-      padding: 40px;
-      margin-bottom: 24px;
-      color: #fff;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: -40px; right: -40px;
-      width: 200px; height: 200px;
-      background: var(--accent);
-      border-radius: 50%;
-      opacity: 0.08;
-    }
-
-    .hero-eyebrow {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 10px;
-    }
-
-    .hero h1 { color: #fff; font-size: 28px; }
-    .hero .subtitle { color: #999; margin-bottom: 24px; }
-
-    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-
-    .quick-stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 16px;
-      margin-bottom: 28px;
-    }
-
-    .qs-card {
-      background: var(--surface);
-      border-radius: 14px;
-      padding: 20px;
-      border: 1px solid var(--border);
-    }
-
-    .qs-value {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -0.04em;
-    }
-
-    .qs-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      margin-top: 4px;
-    }
-
-    .qs-trend {
-      font-size: 11px;
-      font-weight: 600;
-      margin-top: 6px;
-    }
-
-    .up { color: #22c55e; }
-
-    .recientes-table td:first-child { font-weight: 600; }
-
-    .pipeline-bar {
-      display: flex;
-      height: 8px;
-      border-radius: 10px;
-      overflow: hidden;
-      gap: 2px;
-      margin-top: 10px;
-    }
-
-    .pipeline-segment {
-      height: 100%;
-      border-radius: 2px;
-      transition: flex 0.4s;
-    }
-
-    .etapa-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 14px;
-    }
-
-    .etapa-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    .etapa-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+    .hero { background:#0f0f0f;border-radius:20px;padding:40px;margin-bottom:24px;color:#fff;position:relative;overflow:hidden; }
+    .hero::before { content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:var(--accent);border-radius:50%;opacity:0.08; }
+    .hero-eyebrow { font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:10px; }
+    .hero h1 { color:#fff;font-size:28px; }
+    .hero .subtitle { color:#999;margin-bottom:24px; }
+    .hero-actions { display:flex;gap:12px;flex-wrap:wrap; }
+    .quick-stats { display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px; }
+    .qs-card { background:var(--surface);border-radius:14px;padding:20px;border:1px solid var(--border); }
+    .qs-value { font-size:28px;font-weight:700;letter-spacing:-0.04em; }
+    .qs-label { font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-top:4px; }
+    .pipeline-bar { display:flex;height:8px;border-radius:10px;overflow:hidden;gap:2px;margin-top:10px; }
+    .pipeline-segment { height:100%;border-radius:2px;transition:flex 0.4s; }
+    .etapa-legend { display:flex;flex-wrap:wrap;gap:12px;margin-top:14px; }
+    .etapa-item { display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--text-muted); }
+    .etapa-dot { width:8px;height:8px;border-radius:50%; }
+    .two-col { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
+    @media (max-width:700px) { .two-col { grid-template-columns:1fr; } }
+    .loading { display:flex;align-items:center;gap:10px;color:var(--text-muted);font-size:13px;font-weight:500;padding:40px 0; }
+    .spinner { width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:spin 0.7s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -126,114 +34,55 @@
     <h1>Buenos días 👋</h1>
     <p class="subtitle">Aquí tenés un resumen de tu pipeline comercial.</p>
     <div class="hero-actions">
-      <button class="btn btn-accent" onclick="parent.navigateTo('pages/nueva.html')">
-        + Nueva Oportunidad
-      </button>
-      <button class="btn" style="background:#1a1a1a;color:#fff" onclick="CRM.downloadExcel()">
-        ↓ Descargar Excel
-      </button>
+      <button class="btn btn-accent" onclick="parent.navigateTo('pages/nueva.html')">+ Nueva Oportunidad</button>
+      <button class="btn" style="background:#1a1a1a;color:#fff" onclick="handleDownload()">↓ Descargar Excel</button>
     </div>
   </div>
-
-  <div class="quick-stats" id="quickStats"></div>
-
-  <div class="two-col">
-    <div class="card" style="margin-bottom:16px">
-      <div style="font-size:13px;font-weight:700;margin-bottom:4px">Pipeline por Etapa</div>
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">Distribución actual</div>
-      <div class="pipeline-bar" id="pipelineBar"></div>
-      <div class="etapa-legend" id="etapaLegend"></div>
-    </div>
-
-    <div class="card" style="margin-bottom:16px">
-      <div style="font-size:13px;font-weight:700;margin-bottom:4px">Últimas 5 Oportunidades</div>
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">Más recientes</div>
-      <div id="recientesContent"></div>
+  <div id="loadingState" class="loading"><div class="spinner"></div> Cargando datos...</div>
+  <div id="mainContent" style="display:none">
+    <div class="quick-stats" id="quickStats"></div>
+    <div class="two-col">
+      <div class="card" style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px">Pipeline por Etapa</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">Distribución actual</div>
+        <div class="pipeline-bar" id="pipelineBar"></div>
+        <div class="etapa-legend" id="etapaLegend"></div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px">Últimas 5 Oportunidades</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">Más recientes</div>
+        <div id="recientesContent"></div>
+      </div>
     </div>
   </div>
-
   <script>
-    const ETAPA_COLORS = {
-      'Prospecto': '#cbd5e1',
-      'Calificación': '#fde68a',
-      'Propuesta': '#93c5fd',
-      'Negociación': '#fdba74',
-      'Cerrado Ganado': '#86efac',
-      'Cerrado Perdido': '#fca5a5',
-    };
-
-    function fmt(n) {
-      return '$' + Number(n || 0).toLocaleString('es-AR');
-    }
-
-    function render() {
-      const rows = CRM.getData();
-      const activas = rows.filter(r => r['Estado'] === 'Activa');
-      const totalVal = activas.reduce((s, r) => s + (parseFloat(r['Valor Estimado (USD)']) || 0), 0);
-      const ganadas = rows.filter(r => r['Etapa'] === 'Cerrado Ganado').length;
-      const perdidas = rows.filter(r => r['Etapa'] === 'Cerrado Perdido').length;
-      const winRate = (ganadas + perdidas) > 0 ? Math.round(ganadas / (ganadas + perdidas) * 100) : 0;
-
+    const ETAPA_COLORS = {'Prospecto':'#cbd5e1','Calificación':'#fde68a','Propuesta':'#93c5fd','Negociación':'#fdba74','Cerrado Ganado':'#86efac','Cerrado Perdido':'#fca5a5'};
+    function fmt(n) { return '$' + Number(n||0).toLocaleString('es-AR'); }
+    function badgeClass(e) { return {'Prospecto':'badge-prospecto','Calificación':'badge-calificación','Propuesta':'badge-propuesta','Negociación':'badge-negociación','Cerrado Ganado':'badge-ganado','Cerrado Perdido':'badge-perdido','Activa':'badge-activa','En pausa':'badge-pausa','Cerrada':'badge-cerrada'}[e]||''; }
+    let _rows = [];
+    async function handleDownload() { CRM.downloadExcel(_rows); }
+    async function render() {
+      _rows = await CRM.getData(true);
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+      const activas = _rows.filter(r => r['Estado']==='Activa');
+      const totalVal = activas.reduce((s,r) => s+(parseFloat(r['Valor Estimado (USD)'])||0),0);
+      const ganadas = _rows.filter(r => r['Etapa']==='Cerrado Ganado').length;
+      const perdidas = _rows.filter(r => r['Etapa']==='Cerrado Perdido').length;
+      const winRate = (ganadas+perdidas)>0 ? Math.round(ganadas/(ganadas+perdidas)*100) : 0;
       document.getElementById('quickStats').innerHTML = [
-        { v: rows.length, l: 'Total Opor.', t: '' },
-        { v: activas.length, l: 'Activas', t: '' },
-        { v: fmt(totalVal), l: 'Valor Pipeline', t: '' },
-        { v: winRate + '%', l: 'Win Rate', t: '' },
-      ].map(s => `
-        <div class="qs-card">
-          <div class="qs-value">${s.v}</div>
-          <div class="qs-label">${s.l}</div>
-          ${s.t ? `<div class="qs-trend up">${s.t}</div>` : ''}
-        </div>`).join('');
-
-      // Pipeline bar
+        {v:_rows.length,l:'Total Opor.'},{v:activas.length,l:'Activas'},{v:fmt(totalVal),l:'Valor Pipeline'},{v:winRate+'%',l:'Win Rate'}
+      ].map(s=>`<div class="qs-card"><div class="qs-value">${s.v}</div><div class="qs-label">${s.l}</div></div>`).join('');
       const counts = {};
-      CRM.ETAPAS.forEach(e => counts[e] = 0);
-      rows.forEach(r => { if (counts[r['Etapa']] !== undefined) counts[r['Etapa']]++; });
-      const total = rows.length || 1;
-
-      document.getElementById('pipelineBar').innerHTML = CRM.ETAPAS.map(e =>
-        `<div class="pipeline-segment" style="flex:${counts[e] || 0.1};background:${ETAPA_COLORS[e]}"></div>`
-      ).join('');
-
-      document.getElementById('etapaLegend').innerHTML = CRM.ETAPAS.map(e =>
-        `<div class="etapa-item"><div class="etapa-dot" style="background:${ETAPA_COLORS[e]}"></div>${e} (${counts[e]})</div>`
-      ).join('');
-
-      // Recientes
-      const recientes = [...rows].reverse().slice(0, 5);
-      if (recientes.length === 0) {
-        document.getElementById('recientesContent').innerHTML = '<div class="empty"><div class="empty-text">Sin oportunidades aún</div></div>';
-      } else {
-        document.getElementById('recientesContent').innerHTML = `
-          <table>
-            <thead><tr><th>Nombre</th><th>Empresa</th><th>Etapa</th></tr></thead>
-            <tbody>${recientes.map(r => `
-              <tr>
-                <td>${r['Nombre de Oportunidad'] || '—'}</td>
-                <td style="color:var(--text-muted)">${r['Empresa / Cliente'] || '—'}</td>
-                <td><span class="badge ${badgeClass(r['Etapa'])}">${r['Etapa'] || '—'}</span></td>
-              </tr>`).join('')}
-            </tbody>
-          </table>`;
-      }
+      CRM.ETAPAS.forEach(e => counts[e]=0);
+      _rows.forEach(r => { if(counts[r['Etapa']]!==undefined) counts[r['Etapa']]++; });
+      document.getElementById('pipelineBar').innerHTML = CRM.ETAPAS.map(e=>`<div class="pipeline-segment" style="flex:${counts[e]||0.1};background:${ETAPA_COLORS[e]}"></div>`).join('');
+      document.getElementById('etapaLegend').innerHTML = CRM.ETAPAS.map(e=>`<div class="etapa-item"><div class="etapa-dot" style="background:${ETAPA_COLORS[e]}"></div>${e} (${counts[e]})</div>`).join('');
+      const recientes = [..._rows].reverse().slice(0,5);
+      document.getElementById('recientesContent').innerHTML = recientes.length===0
+        ? '<div class="empty"><div class="empty-text">Sin oportunidades aún</div></div>'
+        : `<table><thead><tr><th>Nombre</th><th>Empresa</th><th>Etapa</th></tr></thead><tbody>${recientes.map(r=>`<tr><td>${r['Nombre de Oportunidad']||'—'}</td><td style="color:var(--text-muted)">${r['Empresa / Cliente']||'—'}</td><td><span class="badge ${badgeClass(r['Etapa'])}">${r['Etapa']||'—'}</span></td></tr>`).join('')}</tbody></table>`;
     }
-
-    function badgeClass(etapa) {
-      const map = {
-        'Prospecto': 'badge-prospecto',
-        'Calificación': 'badge-calificación',
-        'Propuesta': 'badge-propuesta',
-        'Negociación': 'badge-negociación',
-        'Cerrado Ganado': 'badge-ganado',
-        'Cerrado Perdido': 'badge-perdido',
-        'Activa': 'badge-activa',
-        'En pausa': 'badge-pausa',
-        'Cerrada': 'badge-cerrada',
-      };
-      return map[etapa] || '';
-    }
-
     render();
   </script>
 </body>

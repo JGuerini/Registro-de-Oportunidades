@@ -5,146 +5,57 @@
   <link rel="stylesheet" href="../assets/style.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="../assets/db.js"></script>
+  <style>
+    .spinner-inline { display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
 </head>
 <body>
   <h1>Nueva Oportunidad</h1>
   <p class="subtitle">Completá los datos para registrar una nueva oportunidad comercial.</p>
-
   <div id="alertBox" class="alert"></div>
-
   <div class="card">
     <form id="oportunidadForm" onsubmit="handleSubmit(event)">
-
-      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)">
-        Información General
-      </div>
-
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)">Información General</div>
       <div class="form-grid" style="margin-bottom:24px">
-        <div class="form-group full">
-          <label>Nombre de la Oportunidad *</label>
-          <input type="text" name="nombre" placeholder="Ej: Proyecto CRM — Empresa XYZ" required/>
-        </div>
-
-        <div class="form-group">
-          <label>Empresa / Cliente *</label>
-          <input type="text" name="empresa" placeholder="Nombre de la empresa" required/>
-        </div>
-
-        <div class="form-group">
-          <label>Contacto</label>
-          <input type="text" name="contacto" placeholder="Nombre del contacto"/>
-        </div>
-
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" name="email" placeholder="contacto@empresa.com"/>
-        </div>
-
-        <div class="form-group">
-          <label>Teléfono</label>
-          <input type="text" name="telefono" placeholder="+54 11 0000-0000"/>
-        </div>
+        <div class="form-group full"><label>Nombre de la Oportunidad *</label><input type="text" name="nombre" placeholder="Ej: Proyecto CRM — Empresa XYZ" required/></div>
+        <div class="form-group"><label>Empresa / Cliente *</label><input type="text" name="empresa" placeholder="Nombre de la empresa" required/></div>
+        <div class="form-group"><label>Contacto</label><input type="text" name="contacto" placeholder="Nombre del contacto"/></div>
+        <div class="form-group"><label>Email</label><input type="email" name="email" placeholder="contacto@empresa.com"/></div>
+        <div class="form-group"><label>Teléfono</label><input type="text" name="telefono" placeholder="+54 11 0000-0000"/></div>
       </div>
-
-      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)">
-        Datos Comerciales
-      </div>
-
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)">Datos Comerciales</div>
       <div class="form-grid" style="margin-bottom:24px">
-        <div class="form-group">
-          <label>Valor Estimado</label>
-          <input type="number" name="valor" placeholder="0" min="0"/>
-        </div>
-
-        <div class="form-group">
-          <label>Moneda</label>
-          <select name="moneda">
-            <option>USD</option>
-            <option>ARS</option>
-            <option>EUR</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Etapa *</label>
-          <select name="etapa" required id="etapaSelect">
-            <option value="">— Seleccionar —</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Probabilidad (%)</label>
-          <input type="number" name="probabilidad" placeholder="50" min="0" max="100"/>
-        </div>
-
-        <div class="form-group">
-          <label>Fecha Cierre Estimada</label>
-          <input type="date" name="fechaCierre"/>
-        </div>
-
-        <div class="form-group">
-          <label>Responsable</label>
-          <input type="text" name="responsable" placeholder="Nombre del responsable"/>
-        </div>
-
-        <div class="form-group">
-          <label>Origen</label>
-          <select name="origen" id="origenSelect">
-            <option value="">— Seleccionar —</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Estado</label>
-          <select name="estado" id="estadoSelect">
-            <option value="">— Seleccionar —</option>
-          </select>
-        </div>
-
-        <div class="form-group full">
-          <label>Producto / Servicio</label>
-          <input type="text" name="producto" placeholder="Descripción del producto o servicio"/>
-        </div>
-
-        <div class="form-group full">
-          <label>Descripción</label>
-          <textarea name="descripcion" placeholder="Breve descripción de la oportunidad..."></textarea>
-        </div>
-
-        <div class="form-group full">
-          <label>Próximo Paso</label>
-          <input type="text" name="proximoPaso" placeholder="¿Cuál es el próximo paso?"/>
-        </div>
-
-        <div class="form-group full">
-          <label>Notas</label>
-          <textarea name="notas" placeholder="Notas internas..."></textarea>
-        </div>
+        <div class="form-group"><label>Valor Estimado</label><input type="number" name="valor" placeholder="0" min="0"/></div>
+        <div class="form-group"><label>Moneda</label><select name="moneda"><option>USD</option><option>ARS</option><option>EUR</option></select></div>
+        <div class="form-group"><label>Etapa *</label><select name="etapa" required id="etapaSelect"><option value="">— Seleccionar —</option></select></div>
+        <div class="form-group"><label>Probabilidad (%)</label><input type="number" name="probabilidad" placeholder="50" min="0" max="100"/></div>
+        <div class="form-group"><label>Fecha Cierre Estimada</label><input type="date" name="fechaCierre"/></div>
+        <div class="form-group"><label>Responsable</label><input type="text" name="responsable" placeholder="Nombre del responsable"/></div>
+        <div class="form-group"><label>Origen</label><select name="origen" id="origenSelect"><option value="">— Seleccionar —</option></select></div>
+        <div class="form-group"><label>Estado</label><select name="estado" id="estadoSelect"><option value="">— Seleccionar —</option></select></div>
+        <div class="form-group full"><label>Producto / Servicio</label><input type="text" name="producto" placeholder="Descripción del producto o servicio"/></div>
+        <div class="form-group full"><label>Descripción</label><textarea name="descripcion" placeholder="Breve descripción de la oportunidad..."></textarea></div>
+        <div class="form-group full"><label>Próximo Paso</label><input type="text" name="proximoPaso" placeholder="¿Cuál es el próximo paso?"/></div>
+        <div class="form-group full"><label>Notas</label><textarea name="notas" placeholder="Notas internas..."></textarea></div>
       </div>
-
       <div style="display:flex;gap:12px;justify-content:flex-end">
-        <button type="button" class="btn btn-ghost" onclick="resetForm()">Limpiar</button>
-        <button type="submit" class="btn btn-primary">Guardar Oportunidad →</button>
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('oportunidadForm').reset()">Limpiar</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn">Guardar Oportunidad →</button>
       </div>
-
     </form>
   </div>
-
   <script>
-    // Populate selects
-    CRM.ETAPAS.forEach(e => {
-      document.getElementById('etapaSelect').innerHTML += `<option value="${e}">${e}</option>`;
-    });
-    CRM.ORIGENES.forEach(o => {
-      document.getElementById('origenSelect').innerHTML += `<option value="${o}">${o}</option>`;
-    });
-    CRM.ESTADOS.forEach(s => {
-      document.getElementById('estadoSelect').innerHTML += `<option value="${s}">${s}</option>`;
-    });
+    CRM.ETAPAS.forEach(e => document.getElementById('etapaSelect').innerHTML += `<option>${e}</option>`);
+    CRM.ORIGENES.forEach(o => document.getElementById('origenSelect').innerHTML += `<option>${o}</option>`);
+    CRM.ESTADOS.forEach(s => document.getElementById('estadoSelect').innerHTML += `<option>${s}</option>`);
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
       e.preventDefault();
       const form = e.target;
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-inline"></span>Guardando...';
       const data = {
         'Nombre de Oportunidad': form.nombre.value,
         'Empresa / Cliente': form.empresa.value,
@@ -164,22 +75,24 @@
         'Estado': form.estado.value || 'Activa',
         'Notas': form.notas.value,
       };
-
-      const id = CRM.addOportunidad(data);
-      showAlert(`✓ Oportunidad #${id} guardada exitosamente.`, 'success');
-      form.reset();
-      window.scrollTo(0, 0);
-    }
-
-    function resetForm() {
-      document.getElementById('oportunidadForm').reset();
+      try {
+        const id = await CRM.addOportunidad(data);
+        showAlert(`✓ Oportunidad #${id} guardada exitosamente en Google Sheets.`, 'success');
+        form.reset();
+        window.scrollTo(0,0);
+      } catch(err) {
+        showAlert('✗ Error al guardar. Verificá tu conexión e intentá de nuevo.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Guardar Oportunidad →';
+      }
     }
 
     function showAlert(msg, type) {
       const box = document.getElementById('alertBox');
       box.textContent = msg;
       box.className = `alert alert-${type} show`;
-      setTimeout(() => box.className = 'alert', 4000);
+      setTimeout(() => box.className = 'alert', 5000);
     }
   </script>
 </body>
