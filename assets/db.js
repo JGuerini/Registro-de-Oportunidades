@@ -1,7 +1,6 @@
-// assets/db.js — Gestión de datos via Google Sheets (Apps Script API)
-// Usa solo GET con parámetros para evitar problemas de CORS
+// assets/db.js — Gestión de datos via SheetDB
 
-const API_URL = 'https://script.google.com/a/macros/atos.net/s/AKfycbxDR5wwV7VOJlZ3-Q2mDdW_COK92O8YUcqAs96_0RxUPBuFyliesik_954TVZxIe-AvQQ/exec';
+const API_URL = 'https://sheetdb.io/api/v1/aoezwo0d9hyea';
 
 const COLUMNS = [
   'ID', 'Nombre de Oportunidad', 'Empresa / Cliente', 'Contacto',
@@ -19,42 +18,47 @@ let _cache = null;
 let _cacheTs = 0;
 const CACHE_TTL = 30000;
 
-// Llamada GET con parámetros — evita CORS completamente
-async function apiCall(params) {
-  const url = API_URL + '?' + new URLSearchParams(params).toString();
-  const res = await fetch(url, { method: 'GET', redirect: 'follow' });
-  const text = await res.text();
-  try {
-    return JSON.parse(text);
-  } catch(e) {
-    console.error('Respuesta no-JSON:', text);
-    throw new Error('Respuesta inválida del servidor');
-  }
-}
-
 async function getData(forceRefresh = false) {
   if (!forceRefresh && _cache && (Date.now() - _cacheTs) < CACHE_TTL) {
     return _cache;
   }
   try {
-    const json = await apiCall({ action: 'get' });
-    if (json.ok) {
-      _cache = json.data;
-      _cacheTs = Date.now();
-      return _cache;
-    }
-    throw new Error(json.error);
+    const res = await fetch(API_URL, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
+    });
+    const json = await res.json();
+    _cache = Array.isArray(json) ? json : [];
+    _cacheTs = Date.now();
+    return _cache;
   } catch (e) {
     console.error('Error obteniendo datos:', e);
     return _cache || [];
   }
 }
 
+async function generateId() {
+  const rows = await getData();
+  const maxId = rows.reduce((m, r) => Math.max(m, parseInt(r['ID']) || 0), 0);
+  return String(maxId + 1).padStart(4, '0');
+}
+
 async function addOportunidad(data) {
   try {
-    const json = await apiCall({ action: 'add', data: JSON.stringify(data) });
-    if (json.ok) { _cache = null; return json.id; }
-    throw new Error(json.error);
+    const id = await generateId();
+    const today = new Date().toLocaleDateString('es-AR');
+    const row = { 'ID': id, ...data, 'Fecha Creación': today };
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: row })
+    });
+    const json = await res.json();
+    if (json.created === 1 || json.created === '1') {
+      _cache = null;
+      return id;
+    }
+    throw new Error(JSON.stringify(json));
   } catch (e) {
     console.error('Error agregando oportunidad:', e);
     throw e;
@@ -63,9 +67,14 @@ async function addOportunidad(data) {
 
 async function updateOportunidad(id, data) {
   try {
-    const json = await apiCall({ action: 'update', id, data: JSON.stringify(data) });
-    if (json.ok) { _cache = null; return true; }
-    throw new Error(json.error);
+    const res = await fetch(`${API_URL}/ID/${id}`, {
+      method: 'PATCH',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data })
+    });
+    const json = await res.json();
+    _cache = null;
+    return true;
   } catch (e) {
     console.error('Error actualizando oportunidad:', e);
     throw e;
@@ -74,9 +83,12 @@ async function updateOportunidad(id, data) {
 
 async function deleteOportunidad(id) {
   try {
-    const json = await apiCall({ action: 'delete', id });
-    if (json.ok) { _cache = null; return true; }
-    throw new Error(json.error);
+    const res = await fetch(`${API_URL}/ID/${id}`, {
+      method: 'DELETE',
+      headers: { 'Accept': 'application/json' }
+    });
+    _cache = null;
+    return true;
   } catch (e) {
     console.error('Error eliminando oportunidad:', e);
     throw e;
