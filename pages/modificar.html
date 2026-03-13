@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="stylesheet" href="../assets/style.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="../assets/db.js"></script>
+  <style>
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .search-bar input { flex: 1; }
+
+    .result-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .result-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .result-item:hover { border-color: var(--text); }
+    .result-item.selected { border-color: var(--text); background: #fafaf8; }
+
+    .result-item-name { font-weight: 600; font-size: 14px; }
+    .result-item-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    #editForm { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Modificar Oportunidad</h1>
+  <p class="subtitle">Buscá y editá una oportunidad existente.</p>
+
+  <div id="alertBox" class="alert"></div>
+
+  <!-- SEARCH -->
+  <div id="searchSection">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Buscar por nombre, empresa o ID..." oninput="doSearch()"/>
+    </div>
+    <div class="result-list" id="resultList"></div>
+    <div id="emptySearch" style="display:none" class="empty">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-text">Sin resultados</div>
+      <div class="empty-sub">Probá con otro término de búsqueda</div>
+    </div>
+  </div>
+
+  <!-- EDIT FORM -->
+  <div id="editForm">
+    <div class="page-actions">
+      <div>
+        <div style="font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.05em;text-transform:uppercase">
+          Editando oportunidad
+        </div>
+        <div style="font-size:18px;font-weight:700;margin-top:2px" id="editTitle">—</div>
+      </div>
+      <button class="btn btn-ghost" onclick="backToSearch()">← Volver</button>
+    </div>
+
+    <div class="card">
+      <form id="modForm" onsubmit="handleUpdate(event)">
+        <input type="hidden" id="editId"/>
+
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+          Información General
+        </div>
+
+        <div class="form-grid" style="margin-bottom:24px">
+          <div class="form-group full">
+            <label>Nombre de la Oportunidad *</label>
+            <input type="text" id="e_nombre" required/>
+          </div>
+          <div class="form-group">
+            <label>Empresa / Cliente *</label>
+            <input type="text" id="e_empresa" required/>
+          </div>
+          <div class="form-group">
+            <label>Contacto</label>
+            <input type="text" id="e_contacto"/>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="e_email"/>
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" id="e_telefono"/>
+          </div>
+        </div>
+
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+          Datos Comerciales
+        </div>
+
+        <div class="form-grid" style="margin-bottom:24px">
+          <div class="form-group">
+            <label>Valor Estimado</label>
+            <input type="number" id="e_valor" min="0"/>
+          </div>
+          <div class="form-group">
+            <label>Moneda</label>
+            <select id="e_moneda">
+              <option>USD</option><option>ARS</option><option>EUR</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Etapa *</label>
+            <select id="e_etapa" required></select>
+          </div>
+          <div class="form-group">
+            <label>Probabilidad (%)</label>
+            <input type="number" id="e_prob" min="0" max="100"/>
+          </div>
+          <div class="form-group">
+            <label>Fecha Cierre Estimada</label>
+            <input type="date" id="e_fechaCierre"/>
+          </div>
+          <div class="form-group">
+            <label>Responsable</label>
+            <input type="text" id="e_responsable"/>
+          </div>
+          <div class="form-group">
+            <label>Origen</label>
+            <select id="e_origen"></select>
+          </div>
+          <div class="form-group">
+            <label>Estado</label>
+            <select id="e_estado"></select>
+          </div>
+          <div class="form-group full">
+            <label>Producto / Servicio</label>
+            <input type="text" id="e_producto"/>
+          </div>
+          <div class="form-group full">
+            <label>Descripción</label>
+            <textarea id="e_descripcion"></textarea>
+          </div>
+          <div class="form-group full">
+            <label>Próximo Paso</label>
+            <input type="text" id="e_proximoPaso"/>
+          </div>
+          <div class="form-group full">
+            <label>Notas</label>
+            <textarea id="e_notas"></textarea>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap">
+          <button type="button" class="btn btn-danger" onclick="handleDelete()">🗑 Eliminar Oportunidad</button>
+          <div style="display:flex;gap:12px">
+            <button type="button" class="btn btn-ghost" onclick="backToSearch()">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar Cambios →</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Build selects
+    ['e_etapa','e_origen','e_estado'].forEach((id, i) => {
+      const opts = [CRM.ETAPAS, CRM.ORIGENES, CRM.ESTADOS][i];
+      const el = document.getElementById(id);
+      el.innerHTML = '<option value="">—</option>' + opts.map(o => `<option>${o}</option>`).join('');
+    });
+
+    function doSearch() {
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      const rows = CRM.getData();
+      const filtered = q
+        ? rows.filter(r =>
+            (r['Nombre de Oportunidad'] || '').toLowerCase().includes(q) ||
+            (r['Empresa / Cliente'] || '').toLowerCase().includes(q) ||
+            (r['ID'] || '').toLowerCase().includes(q)
+          )
+        : rows.slice(-20).reverse();
+
+      const list = document.getElementById('resultList');
+      const empty = document.getElementById('emptySearch');
+
+      if (filtered.length === 0) {
+        list.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+      list.innerHTML = filtered.slice(0, 20).map(r => `
+        <div class="result-item" onclick="loadItem('${r['ID']}')">
+          <div>
+            <div class="result-item-name">${r['Nombre de Oportunidad'] || '—'}</div>
+            <div class="result-item-sub">${r['Empresa / Cliente'] || '—'} · ID #${r['ID']}</div>
+          </div>
+          <span class="badge ${badgeClass(r['Etapa'])}">${r['Etapa'] || '—'}</span>
+        </div>`).join('');
+    }
+
+    function loadItem(id) {
+      const r = CRM.getOportunidad(id);
+      if (!r) return;
+      document.getElementById('editId').value = id;
+      document.getElementById('editTitle').textContent = r['Nombre de Oportunidad'];
+      document.getElementById('e_nombre').value = r['Nombre de Oportunidad'] || '';
+      document.getElementById('e_empresa').value = r['Empresa / Cliente'] || '';
+      document.getElementById('e_contacto').value = r['Contacto'] || '';
+      document.getElementById('e_email').value = r['Email'] || '';
+      document.getElementById('e_telefono').value = r['Teléfono'] || '';
+      document.getElementById('e_valor').value = r['Valor Estimado (USD)'] || '';
+      document.getElementById('e_moneda').value = r['Moneda'] || 'USD';
+      document.getElementById('e_etapa').value = r['Etapa'] || '';
+      document.getElementById('e_prob').value = r['Probabilidad (%)'] || '';
+      document.getElementById('e_fechaCierre').value = r['Fecha Cierre Est.'] || '';
+      document.getElementById('e_responsable').value = r['Responsable'] || '';
+      document.getElementById('e_origen').value = r['Origen'] || '';
+      document.getElementById('e_estado').value = r['Estado'] || '';
+      document.getElementById('e_producto').value = r['Producto / Servicio'] || '';
+      document.getElementById('e_descripcion').value = r['Descripción'] || '';
+      document.getElementById('e_proximoPaso').value = r['Próximo Paso'] || '';
+      document.getElementById('e_notas').value = r['Notas'] || '';
+
+      document.getElementById('searchSection').style.display = 'none';
+      document.getElementById('editForm').style.display = 'block';
+      window.scrollTo(0, 0);
+    }
+
+    function backToSearch() {
+      document.getElementById('searchSection').style.display = 'block';
+      document.getElementById('editForm').style.display = 'none';
+      doSearch();
+    }
+
+    function handleUpdate(e) {
+      e.preventDefault();
+      const id = document.getElementById('editId').value;
+      const data = {
+        'Nombre de Oportunidad': document.getElementById('e_nombre').value,
+        'Empresa / Cliente': document.getElementById('e_empresa').value,
+        'Contacto': document.getElementById('e_contacto').value,
+        'Email': document.getElementById('e_email').value,
+        'Teléfono': document.getElementById('e_telefono').value,
+        'Valor Estimado (USD)': document.getElementById('e_valor').value || '0',
+        'Moneda': document.getElementById('e_moneda').value,
+        'Etapa': document.getElementById('e_etapa').value,
+        'Probabilidad (%)': document.getElementById('e_prob').value,
+        'Fecha Cierre Est.': document.getElementById('e_fechaCierre').value,
+        'Responsable': document.getElementById('e_responsable').value,
+        'Origen': document.getElementById('e_origen').value,
+        'Estado': document.getElementById('e_estado').value,
+        'Producto / Servicio': document.getElementById('e_producto').value,
+        'Descripción': document.getElementById('e_descripcion').value,
+        'Próximo Paso': document.getElementById('e_proximoPaso').value,
+        'Notas': document.getElementById('e_notas').value,
+      };
+      CRM.updateOportunidad(id, data);
+      showAlert('✓ Oportunidad actualizada correctamente.', 'success');
+      backToSearch();
+    }
+
+    function handleDelete() {
+      const id = document.getElementById('editId').value;
+      const name = document.getElementById('editTitle').textContent;
+      if (confirm(`¿Seguro que querés eliminar "${name}"?`)) {
+        CRM.deleteOportunidad(id);
+        showAlert('Oportunidad eliminada.', 'success');
+        backToSearch();
+      }
+    }
+
+    function showAlert(msg, type) {
+      const box = document.getElementById('alertBox');
+      box.textContent = msg;
+      box.className = `alert alert-${type} show`;
+      setTimeout(() => box.className = 'alert', 4000);
+    }
+
+    function badgeClass(etapa) {
+      const map = { 'Prospecto':'badge-prospecto','Calificación':'badge-calificación','Propuesta':'badge-propuesta','Negociación':'badge-negociación','Cerrado Ganado':'badge-ganado','Cerrado Perdido':'badge-perdido' };
+      return map[etapa] || '';
+    }
+
+    // Init: show all
+    doSearch();
+  </script>
+</body>
+</html>
