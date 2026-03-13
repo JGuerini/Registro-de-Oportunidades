@@ -1,7 +1,7 @@
 // assets/db.js — Gestión de datos via Google Sheets (Apps Script API)
 // Usa solo GET con parámetros para evitar problemas de CORS
 
-const API_URL = 'https://script.google.com/a/macros/atos.net/s/AKfycbw80mlzr_JD1ZhF-f5pUgrpVoB0Q1Wd7Xu3D5TuDwcz7AKzIYBRzwl1-WaJa4HQPsfLcA/exec';
+const API_URL = 'https://script.google.com/a/macros/atos.net/s/AKfycbxDR5wwV7VOJlZ3-Q2mDdW_COK92O8YUcqAs96_0RxUPBuFyliesik_954TVZxIe-AvQQ/exec';
 
 const COLUMNS = [
   'ID', 'Nombre de Oportunidad', 'Empresa / Cliente', 'Contacto',
