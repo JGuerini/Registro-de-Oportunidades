@@ -4,13 +4,13 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #f5f4f0;
+  --bg: #f4f3f7;
   --surface: #ffffff;
-  --accent: #c8f53c;
-  --accent-dark: #a8d020;
+  --accent: #8a38fe;
+  --accent-dark: #6f2ad4;
   --text: #0f0f0f;
   --text-muted: #888;
-  --border: #e8e6e0;
+  --border: #e5e0f0;
   --danger: #ef4444;
   --success: #22c55e;
   --warning: #f59e0b;
