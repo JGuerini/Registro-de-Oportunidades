@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="stylesheet" href="../assets/style.css"/>
+  <script src="../assets/auth.js"></script>
+  <style>
+    .btn-sm { font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;padding:5px 12px;border-radius:7px;border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--text);transition:border-color 0.2s; }
+    .btn-sm:hover { border-color:var(--text); }
+    .modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:#fff;border-radius:20px;padding:32px;width:100%;max-width:440px;border:1px solid var(--border); }
+    .modal-title { font-size:16px;font-weight:700;margin-bottom:4px; }
+    .modal-sub { font-size:12px;color:var(--text-muted);margin-bottom:24px; }
+    .loading { display:flex;align-items:center;gap:10px;color:var(--text-muted);font-size:13px;padding:40px 0; }
+    .spinner { width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:spin 0.7s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="page-actions">
+    <div>
+      <h1>Gestión de Usuarios</h1>
+      <p class="subtitle" style="margin-bottom:0">Administrá los usuarios de la plataforma.</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('new')">+ Nuevo Usuario</button>
+  </div>
+
+  <div id="alertBox" class="alert"></div>
+
+  <div class="card" style="padding:0">
+    <div id="loadingState" class="loading" style="padding:40px 28px"><div class="spinner"></div> Cargando usuarios...</div>
+    <div id="tableContainer" style="display:none">
+      <table>
+        <thead><tr>
+          <th>Nombre</th><th>Usuario</th><th>Email</th>
+          <th>Perfil</th><th>Estado</th><th style="text-align:center">Acciones</th>
+        </tr></thead>
+        <tbody id="usersBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-title" id="modalTitle">Nuevo Usuario</div>
+      <div class="modal-sub" id="modalSub">Completá los datos del nuevo usuario.</div>
+      <div id="modalAlertBox" class="alert"></div>
+      <form onsubmit="handleModalSubmit(event)" id="modalForm">
+        <input type="hidden" id="modalMode"/>
+        <input type="hidden" id="modalUsuarioOriginal"/>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input type="text" id="m_nombre" required/>
+          </div>
+          <div class="form-group">
+            <label>Usuario *</label>
+            <input type="text" id="m_usuario" required/>
+          </div>
+          <div class="form-group full">
+            <label>Email *</label>
+            <input type="email" id="m_email" required/>
+          </div>
+          <div class="form-group">
+            <label>Perfil</label>
+            <select id="m_perfil">
+              <option value="usuario">Usuario</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Activo</label>
+            <select id="m_activo">
+              <option value="SI">Sí</option>
+              <option value="NO">No</option>
+            </select>
+          </div>
+          <div class="form-group full" id="passGroup">
+            <label>Contraseña *</label>
+            <input type="password" id="m_pass" placeholder="Mínimo 6 caracteres"/>
+          </div>
+          <div class="form-group full" id="passResetGroup" style="display:none">
+            <label>Nueva Contraseña (dejar vacío para no cambiar)</label>
+            <input type="password" id="m_passReset" placeholder="Dejar vacío para mantener"/>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+          <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="modalBtn">Crear Usuario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const session = AUTH.requireAuth();
+    if (session && session.perfil !== 'admin') {
+      document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#888;font-family:Montserrat,sans-serif">No tenés permisos para acceder a esta sección.</div>';
+    }
+
+    async function loadUsers() {
+      const users = await AUTH.getAllUsers();
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('tableContainer').style.display = 'block';
+      document.getElementById('usersBody').innerHTML = users.map(u => `
+        <tr>
+          <td style="font-weight:600">${u['Nombre']}</td>
+          <td style="color:var(--text-muted)">${u['Usuario']}</td>
+          <td style="color:var(--text-muted);font-size:12px">${u['Email']}</td>
+          <td><span class="badge ${u['Perfil']==='admin'?'badge-ganado':'badge-propuesta'}">${u['Perfil']}</span></td>
+          <td><span class="badge ${u['Activo']==='SI'?'badge-activa':'badge-cerrada'}">${u['Activo']==='SI'?'Activo':'Inactivo'}</span></td>
+          <td style="text-align:center"><button class="btn-sm" onclick="openModal('edit','${u['Usuario']}')">Editar</button></td>
+        </tr>`).join('');
+    }
+
+    let _allUsers = [];
+    AUTH.getAllUsers().then(u => { _allUsers = u; });
+
+    function openModal(mode, usuario) {
+      document.getElementById('modalMode').value = mode;
+      document.getElementById('modalAlertBox').className = 'alert';
+      document.getElementById('modalForm').reset();
+
+      if (mode === 'new') {
+        document.getElementById('modalTitle').textContent = 'Nuevo Usuario';
+        document.getElementById('modalSub').textContent = 'Completá los datos del nuevo usuario.';
+        document.getElementById('modalBtn').textContent = 'Crear Usuario';
+        document.getElementById('m_usuario').disabled = false;
+        document.getElementById('passGroup').style.display = 'block';
+        document.getElementById('passResetGroup').style.display = 'none';
+        document.getElementById('m_pass').required = true;
+      } else {
+        const u = _allUsers.find(x => x['Usuario'] === usuario);
+        if (!u) return;
+        document.getElementById('modalTitle').textContent = 'Editar Usuario';
+        document.getElementById('modalSub').textContent = `Modificando: ${u['Nombre']}`;
+        document.getElementById('modalBtn').textContent = 'Guardar Cambios';
+        document.getElementById('modalUsuarioOriginal').value = usuario;
+        document.getElementById('m_nombre').value = u['Nombre'];
+        document.getElementById('m_usuario').value = u['Usuario'];
+        document.getElementById('m_usuario').disabled = true;
+        document.getElementById('m_email').value = u['Email'];
+        document.getElementById('m_perfil').value = u['Perfil'];
+        document.getElementById('m_activo').value = u['Activo'];
+        document.getElementById('passGroup').style.display = 'none';
+        document.getElementById('passResetGroup').style.display = 'block';
+        document.getElementById('m_pass').required = false;
+      }
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+    }
+
+    async function handleModalSubmit(e) {
+      e.preventDefault();
+      const mode = document.getElementById('modalMode').value;
+      const btn = document.getElementById('modalBtn');
+      btn.disabled = true;
+      btn.textContent = 'Guardando...';
+
+      try {
+        if (mode === 'new') {
+          const pass = document.getElementById('m_pass').value;
+          if (pass.length < 6) { showModalAlert('La contraseña debe tener al menos 6 caracteres.'); return; }
+          const ok = await AUTH.addUser({
+            'Nombre': document.getElementById('m_nombre').value,
+            'Usuario': document.getElementById('m_usuario').value,
+            'Email': document.getElementById('m_email').value,
+            'Contraseña': pass,
+            'Perfil': document.getElementById('m_perfil').value,
+            'Activo': document.getElementById('m_activo').value,
+          });
+          if (ok) {
+            showAlert('✓ Usuario creado correctamente.', 'success');
+            closeModal();
+            loadUsers();
+          } else {
+            showModalAlert('Error al crear el usuario.');
+          }
+        } else {
+          const usuario = document.getElementById('modalUsuarioOriginal').value;
+          const data = {
+            'Nombre': document.getElementById('m_nombre').value,
+            'Email': document.getElementById('m_email').value,
+            'Perfil': document.getElementById('m_perfil').value,
+            'Activo': document.getElementById('m_activo').value,
+          };
+          const newPass = document.getElementById('m_passReset').value;
+          if (newPass) {
+            if (newPass.length < 6) { showModalAlert('La contraseña debe tener al menos 6 caracteres.'); return; }
+            data['Contraseña'] = await AUTH.sha256(newPass);
+          }
+          await AUTH.updateUser(usuario, data);
+          showAlert('✓ Usuario actualizado correctamente.', 'success');
+          closeModal();
+          loadUsers();
+        }
+      } catch(err) {
+        showModalAlert('Error al guardar. Intentá de nuevo.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = mode === 'new' ? 'Crear Usuario' : 'Guardar Cambios';
+      }
+    }
+
+    function showAlert(msg, type) {
+      const box = document.getElementById('alertBox');
+      box.textContent = msg;
+      box.className = `alert alert-${type} show`;
+      setTimeout(() => box.className = 'alert', 5000);
+    }
+
+    function showModalAlert(msg) {
+      const box = document.getElementById('modalAlertBox');
+      box.textContent = msg;
+      box.className = 'alert alert-error show';
+      document.getElementById('modalBtn').disabled = false;
+      document.getElementById('modalBtn').textContent = document.getElementById('modalMode').value === 'new' ? 'Crear Usuario' : 'Guardar Cambios';
+    }
+
+    loadUsers();
+  </script>
+</body>
+</html>

@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <link rel="stylesheet" href="../assets/style.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="../assets/auth.js"></script>
   <script src="../assets/db.js"></script>
   <style>
     .search-bar { display:flex;gap:10px;margin-bottom:24px; }
@@ -83,6 +84,7 @@
   </div>
 
   <script>
+    const _session = AUTH.requireAuth(); if(!_session) throw new Error("no auth");
     ['e_etapa','e_origen','e_estado'].forEach((id,i) => {
       const opts = [CRM.ETAPAS,CRM.ORIGENES,CRM.ESTADOS][i];
       document.getElementById(id).innerHTML = '<option value="">—</option>' + opts.map(o=>`<option>${o}</option>`).join('');
@@ -122,6 +124,14 @@
 
     function loadItem(id) {
       const r = allRows.find(x => x['ID']===id);
+      // Verificar permisos: usuario solo puede editar sus propias oportunidades
+      if (_session && _session.perfil !== 'admin' && r && r['Responsable'] !== _session.nombre) {
+        alert('Solo podés editar oportunidades que te pertenecen.');
+        return;
+      }
+      // Ocultar botón eliminar si no es admin
+      const delBtn = document.querySelector('.btn-danger');
+      if (delBtn) delBtn.style.display = _session && _session.perfil === 'admin' ? '' : 'none';
       if (!r) return;
       document.getElementById('editId').value = id;
       document.getElementById('editTitle').textContent = r['Nombre de Oportunidad'];

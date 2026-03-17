@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <link rel="stylesheet" href="../assets/style.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="../assets/auth.js"></script>
   <script src="../assets/db.js"></script>
   <style>
     .spinner-inline { display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px; }
@@ -46,6 +47,16 @@
     </form>
   </div>
   <script>
+    const _session = AUTH.requireAuth(); if(!_session) throw new Error("no auth");
+    // Pre-rellenar responsable con el usuario actual
+    window.addEventListener('DOMContentLoaded', () => {
+      if (_session) {
+        const respField = document.querySelector('input[name="responsable"]');
+        if (respField) respField.value = _session.nombre;
+        // Si no es admin, el campo responsable es solo lectura
+        if (_session.perfil !== 'admin' && respField) respField.readOnly = true;
+      }
+    });
     CRM.ETAPAS.forEach(e => document.getElementById('etapaSelect').innerHTML += `<option>${e}</option>`);
     CRM.ORIGENES.forEach(o => document.getElementById('origenSelect').innerHTML += `<option>${o}</option>`);
     CRM.ESTADOS.forEach(s => document.getElementById('estadoSelect').innerHTML += `<option>${s}</option>`);

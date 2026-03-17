@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="stylesheet" href="../assets/style.css"/>
+  <script src="../assets/auth.js"></script>
+</head>
+<body>
+  <h1>Mi Perfil</h1>
+  <p class="subtitle">Información de tu cuenta y cambio de contraseña.</p>
+  <div id="alertBox" class="alert"></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:800px">
+
+    <!-- Info -->
+    <div class="card">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border)">Información de Cuenta</div>
+      <div id="userInfo"></div>
+    </div>
+
+    <!-- Cambiar contraseña -->
+    <div class="card">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border)">Cambiar Contraseña</div>
+      <form onsubmit="handleChangePass(event)">
+        <div class="form-group" style="margin-bottom:14px">
+          <label>Contraseña Actual</label>
+          <input type="password" id="oldPass" placeholder="••••••••" required/>
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label>Nueva Contraseña</label>
+          <input type="password" id="newPass" placeholder="••••••••" minlength="6" required/>
+        </div>
+        <div class="form-group" style="margin-bottom:20px">
+          <label>Confirmar Nueva Contraseña</label>
+          <input type="password" id="confirmPass" placeholder="••••••••" required/>
+        </div>
+        <button type="submit" class="btn btn-primary" id="btnChange" style="width:100%">Cambiar Contraseña</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const session = AUTH.requireAuth();
+
+    // Render user info
+    if (session) {
+      document.getElementById('userInfo').innerHTML = `
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
+          <div style="width:56px;height:56px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0">
+            ${session.nombre.split(' ').map(n=>n[0]).slice(0,2).join('')}
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:700">${session.nombre}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${session.email}</div>
+          </div>
+        </div>
+        ${infoRow('Usuario', session.usuario)}
+        ${infoRow('Perfil', `<span class="badge ${session.perfil==='admin'?'badge-ganado':'badge-propuesta'}">${session.perfil}</span>`)}
+        ${infoRow('Estado', '<span class="badge badge-activa">Activo</span>')}
+      `;
+    }
+
+    function infoRow(label, value) {
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px">
+        <span style="color:var(--text-muted);font-weight:500">${label}</span>
+        <span style="font-weight:600">${value}</span>
+      </div>`;
+    }
+
+    async function handleChangePass(e) {
+      e.preventDefault();
+      const oldPass = document.getElementById('oldPass').value;
+      const newPass = document.getElementById('newPass').value;
+      const confirmPass = document.getElementById('confirmPass').value;
+      const btn = document.getElementById('btnChange');
+
+      if (newPass !== confirmPass) {
+        showAlert('Las contraseñas nuevas no coinciden.', 'error'); return;
+      }
+      if (newPass.length < 6) {
+        showAlert('La contraseña debe tener al menos 6 caracteres.', 'error'); return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Guardando...';
+
+      const result = await AUTH.changePassword(session.usuario, oldPass, newPass);
+      if (result.ok) {
+        showAlert('✓ Contraseña actualizada correctamente.', 'success');
+        e.target.reset();
+      } else {
+        showAlert('✗ ' + result.error, 'error');
+      }
+      btn.disabled = false;
+      btn.textContent = 'Cambiar Contraseña';
+    }
+
+    function showAlert(msg, type) {
+      const box = document.getElementById('alertBox');
+      box.textContent = msg;
+      box.className = `alert alert-${type} show`;
+      setTimeout(() => box.className = 'alert', 5000);
+    }
+  </script>
+</body>
+</html>
