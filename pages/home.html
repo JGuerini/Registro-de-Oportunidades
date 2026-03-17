@@ -70,7 +70,7 @@
       document.getElementById('loadingState').style.display = 'none';
       document.getElementById('mainContent').style.display = 'block';
       const activas = _rows.filter(r => r['Estado']==='En Desarrollo');
-      const totalVal = activas.reduce((s,r) => s+(parseFloat(r['TCV EUR'])||0),0);
+      const totalVal = _rows.reduce((s,r) => s+(parseFloat(r['TCV EUR'])||0),0);
       const ganadas = _rows.filter(r => r['Estado']==='Finalizada').length;
       const perdidas = _rows.filter(r => r['Estado']==='Entregada').length;
       const winRate = (ganadas+perdidas)>0 ? Math.round(ganadas/(ganadas+perdidas)*100) : 0;
@@ -79,13 +79,13 @@
       ].map(s=>`<div class="qs-card"><div class="qs-value">${s.v}</div><div class="qs-label">${s.l}</div></div>`).join('');
       const counts = {};
       ['En Desarrollo','Entregada','Finalizada'].forEach(e => counts[e]=0);
-      _rows.forEach(r => { if(counts[r['Etapa']]!==undefined) counts[r['Etapa']]++; });
-      document.getElementById('pipelineBar').innerHTML = CRM.ETAPAS.map(e=>`<div class="pipeline-segment" style="flex:${counts[e]||0.1};background:${ETAPA_COLORS[e]}"></div>`).join('');
-      document.getElementById('etapaLegend').innerHTML = CRM.ETAPAS.map(e=>`<div class="etapa-item"><div class="etapa-dot" style="background:${ETAPA_COLORS[e]}"></div>${e} (${counts[e]})</div>`).join('');
+      _rows.forEach(r => { if(counts[r['Estado']]!==undefined) counts[r['Estado']]++; });
+      document.getElementById('pipelineBar').innerHTML = ['En Desarrollo','Entregada','Finalizada'].map(e=>`<div class="pipeline-segment" style="flex:${counts[e]||0.1};background:${ETAPA_COLORS[e]}"></div>`).join('');
+      document.getElementById('etapaLegend').innerHTML = ['En Desarrollo','Entregada','Finalizada'].map(e=>`<div class="etapa-item"><div class="etapa-dot" style="background:${ETAPA_COLORS[e]}"></div>${e} (${counts[e]})</div>`).join('');
       const recientes = [..._rows].reverse().slice(0,5);
       document.getElementById('recientesContent').innerHTML = recientes.length===0
         ? '<div class="empty"><div class="empty-text">Sin oportunidades aún</div></div>'
-        : `<table><thead><tr><th>Nombre</th><th>Cliente</th><th>Estado</th></tr></thead><tbody>${recientes.map(r=>`<tr><td>${r['Nombre de la Oportunidad']||'—'}</td><td style="color:var(--text-muted)">${r['Cliente']||'—'}</td><td><span class="badge ${badgeClass(r['Estado'])}">${r['Etapa']||'—'}</span></td></tr>`).join('')}</tbody></table>`;
+        : `<table><thead><tr><th>Nombre</th><th>Cliente</th><th>Estado</th></tr></thead><tbody>${recientes.map(r=>`<tr><td>${r['Nombre de la Oportunidad']||'—'}</td><td style="color:var(--text-muted)">${r['Cliente']||'—'}</td><td><span class="badge ${badgeClass(r['Estado'])}">${r['Estado']||'—'}</span></td></tr>`).join('')}</tbody></table>`;
     }
     render();
   </script>
