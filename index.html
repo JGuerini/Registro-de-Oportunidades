@@ -516,11 +516,14 @@
   async function checkConexion() {
     setStatus('sincronizando');
     try {
-      const res = await fetch('https://script.google.com/macros/s/AKfycbzB2r-yp_xtWlZadlTkP8ShFYJyCjEPNWkfksTxxMOZ2tReUJuDgtp2W_Idh2HCRlYm/exec?action=get', {
-        method: 'GET', headers: { 'Accept': 'application/json' }
+      const res = await fetch('https://oportunidadesar.javier-sd-atos.workers.dev?target=oportunidades&action=get', {
+        method: 'GET', redirect: 'follow'
       });
-      setStatus(res.ok ? 'conectado' : 'error');
+      const text = await res.text();
+      // Si la respuesta contiene "ok" es un JSON válido de Apps Script
+      setStatus(text.includes('"ok"') ? 'conectado' : 'error');
     } catch(e) {
+      // Si hay error de red real
       setStatus('error');
     }
   }
