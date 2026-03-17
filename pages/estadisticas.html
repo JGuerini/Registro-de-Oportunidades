@@ -81,7 +81,7 @@
     const _session = AUTH.requireAuth(); if(!_session) throw new Error("no auth");
 
     const PALETTE = ['#8a38fe','#0f0f0f','#93c5fd','#fde68a','#86efac','#fca5a5','#fdba74','#e9d5ff','#a7f3d0','#cbd5e1'];
-    const ESTADOS  = ['En Desarrollo','Entregada','Finalizada'];
+    const CHART_ESTADOS = ['En Desarrollo','Entregada','Finalizada'];
     const ESTADO_COLORS = { 'En Desarrollo':'#93c5fd', 'Entregada':'#fde68a', 'Finalizada':'#86efac' };
 
     Chart.defaults.font.family = "'Montserrat', sans-serif";
@@ -109,29 +109,29 @@
 
       // ── Estado count ──
       const estadoCounts = {};
-      ESTADOS.forEach(e => estadoCounts[e] = 0);
+      CHART_ESTADOS.forEach(e => estadoCounts[e] = 0);
       rows.forEach(r => { if (estadoCounts[r['Estado']] !== undefined) estadoCounts[r['Estado']]++; });
 
       new Chart(document.getElementById('chartEstado'), {
         type: 'doughnut',
-        data: { labels: ESTADOS, datasets: [{ data: ESTADOS.map(e=>estadoCounts[e]), backgroundColor: ESTADOS.map(e=>ESTADO_COLORS[e]), borderWidth: 0 }] },
+        data: { labels: CHART_ESTADOS, datasets: [{ data: CHART_ESTADOS.map(e=>estadoCounts[e]), backgroundColor: CHART_ESTADOS.map(e=>ESTADO_COLORS[e]), borderWidth: 0 }] },
         options: { plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, padding:14 } } }, cutout:'65%', maintainAspectRatio:false }
       });
 
       // ── TCV EUR por estado ──
       const estadoTCV = {};
-      ESTADOS.forEach(e => estadoTCV[e] = 0);
+      CHART_ESTADOS.forEach(e => estadoTCV[e] = 0);
       rows.forEach(r => { if (estadoTCV[r['Estado']] !== undefined) estadoTCV[r['Estado']] += parseFloat(r['TCV EUR'])||0; });
 
       new Chart(document.getElementById('chartTCV'), {
         type: 'bar',
-        data: { labels: ESTADOS, datasets: [{ data: ESTADOS.map(e=>estadoTCV[e]), backgroundColor: ESTADOS.map(e=>ESTADO_COLORS[e]), borderRadius:6, borderSkipped:false }] },
+        data: { labels: CHART_ESTADOS, datasets: [{ data: CHART_ESTADOS.map(e=>estadoTCV[e]), backgroundColor: CHART_ESTADOS.map(e=>ESTADO_COLORS[e]), borderRadius:6, borderSkipped:false }] },
         options: { plugins:{ legend:{ display:false } }, scales:{ y:{ grid:{ color:'#f0ede6' }, ticks:{ callback: v=>'€'+(v>=1000?(v/1000).toFixed(0)+'k':v) } }, x:{ grid:{ display:false } } }, maintainAspectRatio:false }
       });
 
       // ── Funnel ──
-      const maxCount = Math.max(...ESTADOS.map(e=>estadoCounts[e]||0), 1);
-      document.getElementById('funnelChart').innerHTML = ESTADOS.map(e=>`
+      const maxCount = Math.max(...CHART_ESTADOS.map(e=>estadoCounts[e]||0), 1);
+      document.getElementById('funnelChart').innerHTML = CHART_ESTADOS.map(e=>`
         <div class="funnel-row">
           <div class="funnel-label">${e}</div>
           <div class="funnel-track"><div class="funnel-fill" style="width:${Math.round((estadoCounts[e]||0)/maxCount*100)}%;background:${ESTADO_COLORS[e]}"></div></div>
