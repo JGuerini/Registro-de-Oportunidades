@@ -4,6 +4,8 @@
   <meta charset="UTF-8"/>
   <link rel="stylesheet" href="../assets/style.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="../assets/auth.js"></script>
+  <script src="../assets/theme.js"></script>
   <script src="../assets/db.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <style>
@@ -43,6 +45,7 @@
     </div>
   </div>
   <script>
+    const _session = AUTH.requireAuth(); if(!_session) throw new Error("no auth");
     const PALETTE = ['#8a38fe','#0f0f0f','#93c5fd','#fde68a','#86efac','#fca5a5','#fdba74','#e9d5ff','#a7f3d0'];
     Chart.defaults.font.family = "'Montserrat', sans-serif";
     Chart.defaults.font.size = 11;

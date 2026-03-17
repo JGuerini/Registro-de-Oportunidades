@@ -4,6 +4,8 @@
   <meta charset="UTF-8"/>
   <link rel="stylesheet" href="../assets/style.css"/>
   <script src="../assets/auth.js"></script>
+  <script src="../assets/theme.js"></script>
+  <script src="../assets/darkmode.js"></script>
 </head>
 <body>
   <h1>Mi Perfil</h1>
@@ -42,6 +44,34 @@
   <script>
     const session = AUTH.requireAuth();
 
+    // Init toggle state
+    window.addEventListener('DOMContentLoaded', () => {
+      const enabled = DARKMODE.getDarkModePreference();
+      const toggle = document.getElementById('darkToggle');
+      if (toggle) {
+        toggle.checked = enabled;
+        updateToggleStyle(enabled);
+      }
+    });
+
+    function updateToggleStyle(enabled) {
+      const slider = document.getElementById('darkSlider');
+      const thumb  = document.getElementById('darkThumb');
+      if (!slider || !thumb) return;
+      slider.style.background = enabled ? '#8a38fe' : '#ccc';
+      thumb.style.transform   = enabled ? 'translateX(20px)' : 'translateX(0)';
+    }
+
+    function handleDarkToggle(enabled) {
+      updateToggleStyle(enabled);
+      // Propagar al parent (index.html)
+      if (window.parent && window.parent.DARKMODE) {
+        window.parent.DARKMODE.setDarkMode(enabled);
+      } else {
+        DARKMODE.setDarkMode(enabled);
+      }
+    }
+
     // Render user info
     if (session) {
       document.getElementById('userInfo').innerHTML = `
@@ -57,6 +87,30 @@
         ${infoRow('Usuario', session.usuario)}
         ${infoRow('Perfil', `<span class="badge ${session.perfil==='admin'?'badge-ganado':'badge-propuesta'}">${session.perfil}</span>`)}
         ${infoRow('Estado', '<span class="badge badge-activa">Activo</span>')}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0 2px;font-size:13px">
+          <span style="color:var(--text-muted);font-weight:500">Tema de la interfaz</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span id="themeLabel" style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em"></span>
+            <button id="themeToggle" onclick="handleThemeToggle()" style="
+              width:44px;height:24px;border-radius:12px;border:none;cursor:pointer;
+              position:relative;transition:background 0.3s;background:#ccc;padding:0;flex-shrink:0">
+              <div id="themeKnob" style="
+                width:18px;height:18px;border-radius:50%;background:#fff;
+                position:absolute;top:3px;left:3px;
+                transition:transform 0.3s;box-shadow:0 1px 3px rgba(0,0,0,0.3)">
+              </div>
+            </button>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--text-muted);font-weight:500;font-size:13px">Modo Oscuro</span>
+          <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer">
+            <input type="checkbox" id="darkToggle" style="opacity:0;width:0;height:0;position:absolute" onchange="handleDarkToggle(this.checked)"/>
+            <span id="darkSlider" style="position:absolute;inset:0;border-radius:24px;background:#ccc;transition:background 0.3s;display:flex;align-items:center">
+              <span id="darkThumb" style="position:absolute;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.3s;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>
+            </span>
+          </label>
+        </div>
       `;
     }
 
@@ -94,6 +148,26 @@
       btn.disabled = false;
       btn.textContent = 'Cambiar Contraseña';
     }
+
+    function handleThemeToggle() {
+      THEME.toggleTheme();
+      updateThemeUI();
+      // Notify parent to propagate to other iframes
+      try { parent.THEME.saveTheme(THEME.getSavedTheme()); } catch(e) {}
+    }
+
+    function updateThemeUI() {
+      const isDark = THEME.getSavedTheme() === 'dark';
+      const toggle = document.getElementById('themeToggle');
+      const knob = document.getElementById('themeKnob');
+      const label = document.getElementById('themeLabel');
+      if (toggle) toggle.style.background = isDark ? 'var(--accent)' : '#ccc';
+      if (knob) knob.style.transform = isDark ? 'translateX(20px)' : 'translateX(0)';
+      if (label) label.textContent = isDark ? 'Oscuro' : 'Claro';
+    }
+
+    // Init toggle state
+    updateThemeUI();
 
     function showAlert(msg, type) {
       const box = document.getElementById('alertBox');
