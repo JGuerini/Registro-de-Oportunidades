@@ -6,9 +6,7 @@
   <title>PRESALES AR</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <script src="assets/auth.js"></script>
-  <script src="assets/theme.js"></script>
-  <script src="assets/darkmode.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -445,44 +443,44 @@
 
 </div>
 
+<script src="assets/theme.js"></script>
 <script>
   // ── Auth check ──
   const session = AUTH.getSession();
   if (!session) { window.location.href = 'login.html'; }
 
-  // ── Modo oscuro ──
-  DARKMODE.initDarkMode();
+  // ── Inicializar variables del DOM ──
+  const sidebar   = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('toggleBtn');
+  const frame     = document.getElementById('contentFrame');
+  const pageTitle = document.getElementById('pageTitle');
+  const statusDot = document.getElementById('statusDot');
+  const statusText= document.getElementById('statusText');
 
-  // Mostrar info del usuario
-  const initials = session ? session.nombre.split(' ').map(n=>n[0]).slice(0,2).join('') : '';
-  document.getElementById('userAvatar').textContent = initials;
-  document.getElementById('userName').textContent = session ? session.nombre.split(' ')[0] + ' ' + (session.nombre.split(' ')[1]||'') : '';
-  document.getElementById('userPerfil').textContent = session ? session.perfil : '';
-
-  // Mostrar botón Usuarios solo para admin
-  if (session && session.perfil === 'admin') {
-    const btnUsuarios = document.getElementById('btnUsuarios');
-    if (btnUsuarios) btnUsuarios.style.display = 'flex';
+  // ── Mostrar info del usuario ──
+  if (session) {
+    const initials = session.nombre.split(' ').map(n=>n[0]).slice(0,2).join('');
+    document.getElementById('userAvatar').textContent = initials;
+    document.getElementById('userName').textContent = session.nombre.split(' ').slice(0,2).join(' ');
+    document.getElementById('userPerfil').textContent = session.perfil;
+    if (session.perfil === 'admin') {
+      const btnUsuarios = document.getElementById('btnUsuarios');
+      if (btnUsuarios) btnUsuarios.style.display = 'flex';
+    }
   }
 
-  const sidebar = document.getElementById('sidebar');
-  const toggleBtn = document.getElementById('toggleBtn');
-  const frame = document.getElementById('contentFrame');
-  const pageTitle = document.getElementById('pageTitle');
-
+  // ── Navegación ──
   const pageTitles = {
-    'pages/home.html': 'Inicio',
-    'pages/nueva.html': 'Nueva Oportunidad',
-    'pages/modificar.html': 'Modificar Oportunidad',
-    'pages/todas.html': 'Ver Todas',
-    'pages/estadisticas.html': 'Estadísticas',
-    'pages/usuarios.html': 'Gestión de Usuarios',
-    'pages/perfil.html': 'Mi Perfil',
+    'pages/home.html':        'Inicio',
+    'pages/nueva.html':       'Nueva Oportunidad',
+    'pages/modificar.html':   'Modificar Oportunidad',
+    'pages/todas.html':       'Ver Todas',
+    'pages/estadisticas.html':'Estadísticas',
+    'pages/usuarios.html':    'Gestión de Usuarios',
+    'pages/perfil.html':      'Mi Perfil',
   };
 
-  toggleBtn.addEventListener('click', () => {
-    sidebar.classList.toggle('collapsed');
-  });
+  toggleBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
 
   function navigate(btn) {
     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -492,31 +490,23 @@
     pageTitle.textContent = pageTitles[page] || page;
   }
 
-  // Allow iframes to trigger navigation
   window.navigateTo = function(page) {
     const btn = document.querySelector(`.nav-item[data-page="${page}"]`);
     if (btn) navigate(btn);
   };
 
-  // Propagar modo oscuro cuando carga un iframe
+  // ── Propagar tema al iframe al cargar ──
   frame.addEventListener('load', () => {
     try {
-      DARKMODE.applyDarkModeToDoc(frame.contentDocument, DARKMODE.getDarkModePreference());
+      const isDark = THEME.getSavedTheme() === 'dark';
+      frame.contentWindow.document.body.classList.toggle('dark-mode', isDark);
     } catch(e) {}
   });
 
   // ── Estado de conexión dinámico ──
-  const statusDot  = document.getElementById('statusDot');
-  const statusText = document.getElementById('statusText');
-
   function setStatus(state) {
     statusDot.className = 'status-dot ' + state;
-    const labels = {
-      sincronizando: 'Sincronizando...',
-      conectado:     'Conectado',
-      error:         'Sin conexión',
-    };
-    statusText.textContent = labels[state] || '';
+    statusText.textContent = { sincronizando:'Sincronizando...', conectado:'Conectado', error:'Sin conexión' }[state] || '';
   }
 
   async function checkConexion() {
@@ -525,30 +515,15 @@
       const res = await fetch('https://sheetdb.io/api/v1/c3aj6u51o6sn2', {
         method: 'GET', headers: { 'Accept': 'application/json' }
       });
-      if (res.ok) {
-        setStatus('conectado');
-      } else {
-        setStatus('error');
-      }
+      setStatus(res.ok ? 'conectado' : 'error');
     } catch(e) {
       setStatus('error');
     }
   }
 
-  // Verificar al cargar y cada 60 segundos
   checkConexion();
   setInterval(checkConexion, 60000);
-
-  // Exponer para que las páginas internas puedan actualizar el estado
   window.setConnectionStatus = setStatus;
-
-  // Propagate theme to iframe on every navigation
-  frame.addEventListener('load', () => {
-    try {
-      const theme = THEME.getSavedTheme();
-      frame.contentWindow.document.body.classList.toggle('dark-mode', theme === 'dark');
-    } catch(e) {}
-  });
 </script>
 </body>
 </html>
