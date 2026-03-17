@@ -6,7 +6,7 @@ function getThemeKey() {
   try {
     const raw = sessionStorage.getItem('presales_ar_session');
     const session = raw ? JSON.parse(raw) : null;
-    return session ? THEME_KEY_PREFIX + session.usuario : THEME_KEY_PREFIX + 'default';
+    return THEME_KEY_PREFIX + (session ? session.usuario : 'default');
   } catch { return THEME_KEY_PREFIX + 'default'; }
 }
 
@@ -15,35 +15,30 @@ function getSavedTheme() {
 }
 
 function applyTheme(theme) {
-  if (theme === 'dark') {
-    document.body.classList.add('dark-mode');
-  } else {
-    document.body.classList.remove('dark-mode');
-  }
+  // Esperar a que document.body exista
+  const body = document.body;
+  if (!body) return;
+  body.classList.toggle('dark-mode', theme === 'dark');
 }
 
 function saveTheme(theme) {
   localStorage.setItem(getThemeKey(), theme);
   applyTheme(theme);
-  // Propagar a todos los iframes abiertos
-  try {
-    const frame = document.getElementById('contentFrame');
-    if (frame && frame.contentWindow) {
-      frame.contentWindow.document.body.classList.toggle('dark-mode', theme === 'dark');
-    }
-  } catch(e) {}
 }
 
 function toggleTheme() {
-  const current = getSavedTheme();
-  saveTheme(current === 'dark' ? 'light' : 'dark');
+  saveTheme(getSavedTheme() === 'dark' ? 'light' : 'dark');
 }
 
 function initTheme() {
-  applyTheme(getSavedTheme());
+  // Si body ya existe, aplicar inmediatamente; si no, esperar DOMContentLoaded
+  if (document.body) {
+    applyTheme(getSavedTheme());
+  } else {
+    document.addEventListener('DOMContentLoaded', () => applyTheme(getSavedTheme()));
+  }
 }
 
-// Aplicar tema inmediatamente al cargar
 initTheme();
 
 window.THEME = { getSavedTheme, applyTheme, saveTheme, toggleTheme, initTheme };
