@@ -1,6 +1,6 @@
 // assets/db.js — Gestión de datos via SheetDB
 
-const API_URL = 'https://sheetdb.io/api/v1/aoezwo0d9hyea';
+const API_URL = 'https://sheetdb.io/api/v1/c3aj6u51o6sn2';
 
 const COLUMNS = [
   'ID', 'Nombre de Oportunidad', 'Empresa / Cliente', 'Contacto',

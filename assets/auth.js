@@ -1,6 +1,6 @@
 // assets/auth.js — Sistema de autenticación
 
-const USERS_API = 'https://sheetdb.io/api/v1/aoezwo0d9hyea/sheet/Usuarios';
+const USERS_API = 'https://sheetdb.io/api/v1/c3aj6u51o6sn2/sheet/Usuarios';
 const SESSION_KEY = 'presales_ar_session';
 
 async function sha256(str) {
