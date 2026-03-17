@@ -16,6 +16,57 @@
   --warning: #f59e0b;
 }
 
+body.dark-mode {
+  --bg: #1e1e1e;
+  --surface: #393937;
+  --text: #f0f0f0;
+  --text-muted: #888;
+  --border: #2e2e2e;
+  --accent: #8a38fe;
+  --accent-dark: #6f2ad4;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+  background: #2a2a2a;
+  color: #f0f0f0;
+  border-color: #3a3a3a;
+}
+
+body.dark-mode input:focus,
+body.dark-mode select:focus,
+body.dark-mode textarea:focus {
+  background: #333;
+  border-color: var(--accent);
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+  color: #666;
+}
+
+body.dark-mode option {
+  background: #393937;
+  color: #f0f0f0;
+}
+
+body.dark-mode .btn-ghost {
+  color: #f0f0f0;
+  border-color: #3a3a3a;
+}
+
+body.dark-mode .btn-ghost:hover {
+  border-color: #f0f0f0;
+}
+
+body.dark-mode tr:hover td {
+  background: #2a2a2a;
+}
+
 body {
   font-family: 'Montserrat', sans-serif;
   background: var(--bg);
@@ -258,3 +309,80 @@ tr:hover td { background: var(--bg); }
 .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
 .empty-text { font-size: 14px; font-weight: 500; }
 .empty-sub  { font-size: 12px; margin-top: 6px; }
+
+/* ── MODO OSCURO ── */
+:root.dark {
+  --bg: #1e1e1e;
+  --surface: #393937;
+  --text: #f0f0f0;
+  --text-muted: #888;
+  --border: #2e2e2e;
+  --accent: #8a38fe;
+  --accent-dark: #6f2ad4;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
+}
+
+/* Inputs en modo oscuro */
+:root.dark input,
+:root.dark select,
+:root.dark textarea {
+  background: #2a2a2a;
+  color: #f0f0f0;
+  border-color: #3a3a3a;
+}
+
+:root.dark input:focus,
+:root.dark select:focus,
+:root.dark textarea:focus {
+  background: #333;
+  border-color: var(--accent);
+}
+
+:root.dark input::placeholder,
+:root.dark textarea::placeholder {
+  color: #666;
+}
+
+:root.dark select option {
+  background: #2a2a2a;
+  color: #f0f0f0;
+}
+
+/* Botones en modo oscuro */
+:root.dark .btn-ghost {
+  color: #f0f0f0;
+  border-color: #3a3a3a;
+}
+
+:root.dark .btn-ghost:hover {
+  border-color: #f0f0f0;
+}
+
+:root.dark .btn-sm {
+  color: #f0f0f0;
+  border-color: #3a3a3a;
+}
+
+:root.dark .btn-sm:hover {
+  border-color: #f0f0f0;
+}
+
+/* Tabla en modo oscuro */
+:root.dark tr:hover td {
+  background: #2a2a2a;
+}
+
+/* Alerts en modo oscuro */
+:root.dark .alert-success {
+  background: #14532d;
+  color: #86efac;
+  border-color: #166534;
+}
+
+:root.dark .alert-error {
+  background: #450a0a;
+  color: #fca5a5;
+  border-color: #991b1b;
+}
