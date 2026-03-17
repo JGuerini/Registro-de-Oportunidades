@@ -239,14 +239,31 @@
       width: 7px;
       height: 7px;
       border-radius: 50%;
+      background: #aaa;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .status-dot.conectado {
+      background: #22c55e;
+      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+    }
+    .status-dot.sincronizando {
       background: #8a38fe;
       box-shadow: 0 0 0 2px rgba(138, 56, 254, 0.2);
+      animation: pulse 1s infinite;
     }
-
+    .status-dot.error {
+      background: #ef4444;
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
     .status-text {
       font-size: 11px;
       color: var(--text-muted);
       font-weight: 500;
+      transition: color 0.3s;
     }
 
     .content-frame {
@@ -352,8 +369,8 @@
     <div class="topbar">
       <div class="topbar-breadcrumb">Oportunidades / <span id="pageTitle">Inicio</span></div>
       <div class="topbar-right">
-        <div class="status-dot"></div>
-        <span class="status-text">Datos locales</span>
+        <div class="status-dot sincronizando" id="statusDot"></div>
+        <span class="status-text" id="statusText">Verificando...</span>
       </div>
     </div>
     <iframe class="content-frame" id="contentFrame" src="pages/home.html"></iframe>
@@ -392,6 +409,43 @@
     const btn = document.querySelector(`.nav-item[data-page="${page}"]`);
     if (btn) navigate(btn);
   };
+
+  // ── Estado de conexión dinámico ──
+  const statusDot  = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+
+  function setStatus(state) {
+    statusDot.className = 'status-dot ' + state;
+    const labels = {
+      sincronizando: 'Sincronizando...',
+      conectado:     'Conectado',
+      error:         'Sin conexión',
+    };
+    statusText.textContent = labels[state] || '';
+  }
+
+  async function checkConexion() {
+    setStatus('sincronizando');
+    try {
+      const res = await fetch('https://sheetdb.io/api/v1/aoezwo0d9hyea', {
+        method: 'GET', headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) {
+        setStatus('conectado');
+      } else {
+        setStatus('error');
+      }
+    } catch(e) {
+      setStatus('error');
+    }
+  }
+
+  // Verificar al cargar y cada 60 segundos
+  checkConexion();
+  setInterval(checkConexion, 60000);
+
+  // Exponer para que las páginas internas puedan actualizar el estado
+  window.setConnectionStatus = setStatus;
 </script>
 </body>
 </html>
