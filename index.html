@@ -516,7 +516,7 @@
   async function checkConexion() {
     setStatus('sincronizando');
     try {
-      const res = await fetch('https://sheetdb.io/api/v1/c3aj6u51o6sn2', {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbzB2r-yp_xtWlZadlTkP8ShFYJyCjEPNWkfksTxxMOZ2tReUJuDgtp2W_Idh2HCRlYm/exec?action=get', {
         method: 'GET', headers: { 'Accept': 'application/json' }
       });
       setStatus(res.ok ? 'conectado' : 'error');
