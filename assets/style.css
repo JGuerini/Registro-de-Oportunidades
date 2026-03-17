@@ -63,9 +63,27 @@ body.dark-mode .btn-ghost:hover {
   border-color: #f0f0f0;
 }
 
+body.dark-mode .btn-primary {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+body.dark-mode .btn-primary:hover {
+  background: var(--accent-dark);
+}
+
+body.dark-mode .btn-accent {
+  color: #ffffff;
+}
+
+
+
+
+
 body.dark-mode tr:hover td {
   background: #2a2a2a;
 }
+
 
 body {
   font-family: 'Montserrat', sans-serif;
@@ -159,7 +177,7 @@ textarea { resize: vertical; min-height: 80px; }
 
 .btn-primary {
   background: var(--text);
-  color: #fff;
+  color: #fff !important;
 }
 
 .btn-primary:hover { background: #2a2a2a; }
