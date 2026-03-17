@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PRESALES AR</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <script src="assets/auth.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -357,6 +358,25 @@
         </svg>
         <span class="nav-label">Estadísticas</span>
       </button>
+      <div class="nav-divider"></div>
+
+      <button class="nav-item" data-page="pages/usuarios.html" data-tooltip="Usuarios" data-admin onclick="navigate(this)">
+        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8">
+          <circle cx="7" cy="6" r="3"/>
+          <path d="M1 16c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke-linecap="round"/>
+          <path d="M14 8v4M16 10h-4" stroke-linecap="round"/>
+        </svg>
+        <span class="nav-label">Usuarios</span>
+      </button>
+
+      <button class="nav-item" data-page="pages/perfil.html" data-tooltip="Mi Perfil" onclick="navigate(this)">
+        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8">
+          <circle cx="9" cy="6" r="3.5"/>
+          <path d="M2 17c0-3.9 3.1-7 7-7s7 3.1 7 7" stroke-linecap="round"/>
+        </svg>
+        <span class="nav-label">Mi Perfil</span>
+      </button>
+
     </nav>
 
     <div class="sidebar-footer">
@@ -371,6 +391,19 @@
       <div class="topbar-right">
         <div class="status-dot sincronizando" id="statusDot"></div>
         <span class="status-text" id="statusText">Verificando...</span>
+        <div style="width:1px;height:20px;background:var(--border);margin:0 8px"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div id="userAvatar" style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff"></div>
+          <div>
+            <div id="userName" style="font-size:12px;font-weight:600;color:var(--text);line-height:1.2"></div>
+            <div id="userPerfil" style="font-size:10px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.05em"></div>
+          </div>
+          <button onclick="AUTH.logout()" title="Cerrar sesión" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;border-radius:6px;display:flex;align-items:center;transition:color 0.2s" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 18 18">
+              <path d="M7 3H3v12h4M12 12l3-3-3-3M15 9H7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
     <iframe class="content-frame" id="contentFrame" src="pages/home.html"></iframe>
@@ -379,6 +412,22 @@
 </div>
 
 <script>
+  // ── Auth check ──
+  const session = AUTH.getSession();
+  if (!session) { window.location.href = 'login.html'; }
+
+  // Mostrar info del usuario
+  const initials = session ? session.nombre.split(' ').map(n=>n[0]).slice(0,2).join('') : '';
+  document.getElementById('userAvatar').textContent = initials;
+  document.getElementById('userName').textContent = session ? session.nombre.split(' ')[0] + ' ' + (session.nombre.split(' ')[1]||'') : '';
+  document.getElementById('userPerfil').textContent = session ? session.perfil : '';
+
+  // Ocultar menú admin si no es admin
+  if (session && session.perfil !== 'admin') {
+    const adminItems = document.querySelectorAll('[data-admin]');
+    adminItems.forEach(el => el.style.display = 'none');
+  }
+
   const sidebar = document.getElementById('sidebar');
   const toggleBtn = document.getElementById('toggleBtn');
   const frame = document.getElementById('contentFrame');
@@ -390,6 +439,8 @@
     'pages/modificar.html': 'Modificar Oportunidad',
     'pages/todas.html': 'Ver Todas',
     'pages/estadisticas.html': 'Estadísticas',
+    'pages/usuarios.html': 'Gestión de Usuarios',
+    'pages/perfil.html': 'Mi Perfil',
   };
 
   toggleBtn.addEventListener('click', () => {
