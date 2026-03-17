@@ -59,32 +59,33 @@
   </div>
   <script>
     const _session = AUTH.requireAuth(); if(!_session) throw new Error("no auth");
-    const ETAPA_COLORS = {'Prospecto':'#cbd5e1','Calificación':'#fde68a','Propuesta':'#93c5fd','Negociación':'#fdba74','Cerrado Ganado':'#86efac','Cerrado Perdido':'#fca5a5'};
+    const ETAPA_COLORS = {'En Desarrollo':'#93c5fd','Entregada':'#fde68a','Finalizada':'#86efac'};
     function fmt(n) { return '$' + Number(n||0).toLocaleString('es-AR'); }
-    function badgeClass(e) { return {'Prospecto':'badge-prospecto','Calificación':'badge-calificación','Propuesta':'badge-propuesta','Negociación':'badge-negociación','Cerrado Ganado':'badge-ganado','Cerrado Perdido':'badge-perdido','Activa':'badge-activa','En pausa':'badge-pausa','Cerrada':'badge-cerrada'}[e]||''; }
+    function fmtEUR(n) { return '€' + Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+    function badgeClass(e) { return {'En Desarrollo':'badge-propuesta','Entregada':'badge-calificación','Finalizada':'badge-ganado'}[e]||''; }
     let _rows = [];
     async function handleDownload() { CRM.downloadExcel(_rows); }
     async function render() {
       _rows = await CRM.getData(true);
       document.getElementById('loadingState').style.display = 'none';
       document.getElementById('mainContent').style.display = 'block';
-      const activas = _rows.filter(r => r['Estado']==='Activa');
-      const totalVal = activas.reduce((s,r) => s+(parseFloat(r['Valor Estimado (USD)'])||0),0);
-      const ganadas = _rows.filter(r => r['Etapa']==='Cerrado Ganado').length;
-      const perdidas = _rows.filter(r => r['Etapa']==='Cerrado Perdido').length;
+      const activas = _rows.filter(r => r['Estado']==='En Desarrollo');
+      const totalVal = activas.reduce((s,r) => s+(parseFloat(r['TCV EUR'])||0),0);
+      const ganadas = _rows.filter(r => r['Estado']==='Finalizada').length;
+      const perdidas = _rows.filter(r => r['Estado']==='Entregada').length;
       const winRate = (ganadas+perdidas)>0 ? Math.round(ganadas/(ganadas+perdidas)*100) : 0;
       document.getElementById('quickStats').innerHTML = [
-        {v:_rows.length,l:'Total Opor.'},{v:activas.length,l:'Activas'},{v:fmt(totalVal),l:'Valor Pipeline'},{v:winRate+'%',l:'Win Rate'}
+        {v:_rows.length,l:'Total Opor.'},{v:activas.length,l:'En Desarrollo'},{v:fmtEUR(totalVal),l:'Valor Pipeline'},{v:winRate+'%',l:'Win Rate'}
       ].map(s=>`<div class="qs-card"><div class="qs-value">${s.v}</div><div class="qs-label">${s.l}</div></div>`).join('');
       const counts = {};
-      CRM.ETAPAS.forEach(e => counts[e]=0);
+      ['En Desarrollo','Entregada','Finalizada'].forEach(e => counts[e]=0);
       _rows.forEach(r => { if(counts[r['Etapa']]!==undefined) counts[r['Etapa']]++; });
       document.getElementById('pipelineBar').innerHTML = CRM.ETAPAS.map(e=>`<div class="pipeline-segment" style="flex:${counts[e]||0.1};background:${ETAPA_COLORS[e]}"></div>`).join('');
       document.getElementById('etapaLegend').innerHTML = CRM.ETAPAS.map(e=>`<div class="etapa-item"><div class="etapa-dot" style="background:${ETAPA_COLORS[e]}"></div>${e} (${counts[e]})</div>`).join('');
       const recientes = [..._rows].reverse().slice(0,5);
       document.getElementById('recientesContent').innerHTML = recientes.length===0
         ? '<div class="empty"><div class="empty-text">Sin oportunidades aún</div></div>'
-        : `<table><thead><tr><th>Nombre</th><th>Empresa</th><th>Etapa</th></tr></thead><tbody>${recientes.map(r=>`<tr><td>${r['Nombre de Oportunidad']||'—'}</td><td style="color:var(--text-muted)">${r['Empresa / Cliente']||'—'}</td><td><span class="badge ${badgeClass(r['Etapa'])}">${r['Etapa']||'—'}</span></td></tr>`).join('')}</tbody></table>`;
+        : `<table><thead><tr><th>Nombre</th><th>Cliente</th><th>Estado</th></tr></thead><tbody>${recientes.map(r=>`<tr><td>${r['Nombre de la Oportunidad']||'—'}</td><td style="color:var(--text-muted)">${r['Cliente']||'—'}</td><td><span class="badge ${badgeClass(r['Estado'])}">${r['Etapa']||'—'}</span></td></tr>`).join('')}</tbody></table>`;
     }
     render();
   </script>

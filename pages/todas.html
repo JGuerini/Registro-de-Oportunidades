@@ -3,22 +3,21 @@
 <head>
   <meta charset="UTF-8"/>
   <link rel="stylesheet" href="../assets/style.css"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="../assets/auth.js"></script>
   <script src="../assets/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="../assets/db.js"></script>
   <style>
-    .filters { display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px; }
-    .filters input,.filters select { flex:1;min-width:140px;max-width:220px; }
-    .col-valor { text-align:right;font-variant-numeric:tabular-nums; }
-    .col-id { color:var(--text-muted);font-size:12px; }
+    .filters { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+    .filters input, .filters select { flex:1; min-width:140px; max-width:220px; }
+    .col-id { color:var(--text-muted); font-size:12px; }
     .col-action { text-align:center; }
     .btn-sm { font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;padding:5px 12px;border-radius:7px;border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--text);transition:border-color 0.2s; }
     .btn-sm:hover { border-color:var(--text); }
-    .sort-th { cursor:pointer;user-select:none; }
+    .sort-th { cursor:pointer; user-select:none; }
     .sort-th:hover { color:var(--text); }
-    .loading { display:flex;align-items:center;gap:10px;color:var(--text-muted);font-size:13px;padding:40px 28px; }
-    .spinner { width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:spin 0.7s linear infinite; }
+    .loading { display:flex; align-items:center; gap:10px; color:var(--text-muted); font-size:13px; padding:40px 28px; }
+    .spinner { width:18px; height:18px; border:2px solid var(--border); border-top-color:var(--text); border-radius:50%; animation:spin 0.7s linear infinite; }
     @keyframes spin { to { transform:rotate(360deg); } }
   </style>
 </head>
@@ -33,27 +32,43 @@
       <button class="btn btn-primary" onclick="parent.navigateTo('pages/nueva.html')">+ Nueva</button>
     </div>
   </div>
+
   <div class="filters">
     <input type="text" id="filterSearch" placeholder="Buscar..." oninput="renderTable()"/>
-    <select id="filterEtapa" onchange="renderTable()"><option value="">Todas las etapas</option></select>
-    <select id="filterEstado" onchange="renderTable()"><option value="">Todos los estados</option></select>
-    <select id="filterResponsable" onchange="renderTable()"><option value="">Todos los responsables</option></select>
+    <select id="filterEstado" onchange="renderTable()">
+      <option value="">Todos los estados</option>
+      <option>En Desarrollo</option>
+      <option>Entregada</option>
+      <option>Finalizada</option>
+    </select>
+    <select id="filterPractica" onchange="renderTable()">
+      <option value="">Todas las prácticas</option>
+      <option>AM</option>
+      <option>CES</option>
+      <option>Consultoría</option>
+      <option>DWP</option>
+      <option>Enablon</option>
+      <option>HCI</option>
+      <option>IA</option>
+      <option>SAP</option>
+      <option>Testing</option>
+    </select>
+    <select id="filterResponsable" onchange="renderTable()">
+      <option value="">Todos los responsables</option>
+    </select>
   </div>
+
   <div class="card" style="padding:0">
-    <div id="loadingState" class="loading"><div class="spinner"></div> Cargando datos desde Google Sheets...</div>
+    <div id="loadingState" class="loading"><div class="spinner"></div> Cargando datos...</div>
     <div id="tableContainer" style="display:none">
       <div class="table-wrap">
-        <table id="mainTable">
+        <table>
           <thead><tr>
             <th class="sort-th" onclick="sort('ID')">ID</th>
-            <th class="sort-th" onclick="sort('Nombre de Oportunidad')">Oportunidad</th>
-            <th class="sort-th" onclick="sort('Empresa / Cliente')">Empresa</th>
-            <th class="sort-th" onclick="sort('Etapa')">Etapa</th>
-            <th class="sort-th" onclick="sort('Valor Estimado (USD)')">Valor (USD)</th>
-            <th>Prob.</th>
-            <th>Responsable</th>
-            <th class="sort-th" onclick="sort('Fecha Cierre Est.')">Cierre Est.</th>
-            <th>Estado</th>
+            <th class="sort-th" onclick="sort('Cliente')">Cliente</th>
+            <th class="sort-th" onclick="sort('Nombre de la Oportunidad')">Nombre de la Oportunidad</th>
+            <th class="sort-th" onclick="sort('Responsable')">Responsable</th>
+            <th class="sort-th" onclick="sort('Estado')">Estado</th>
             <th class="col-action">Acción</th>
           </tr></thead>
           <tbody id="tableBody"></tbody>
@@ -66,20 +81,17 @@
       </div>
     </div>
   </div>
+
   <script>
     const _session = AUTH.requireAuth(); if(!_session) throw new Error("no auth");
     let allRows = [];
     let sortKey = 'ID', sortDir = -1;
 
-    CRM.ETAPAS.forEach(e => document.getElementById('filterEtapa').innerHTML += `<option>${e}</option>`);
-    CRM.ESTADOS.forEach(s => document.getElementById('filterEstado').innerHTML += `<option>${s}</option>`);
-
     async function init() {
-      const rawRows = await CRM.getData(true);
-      // Si no es admin, solo ve sus propias oportunidades
-      allRows = _session && _session.perfil === 'admin'
-        ? rawRows
-        : rawRows.filter(r => r['Responsable'] === _session.nombre);
+      const raw = await CRM.getData(true);
+      allRows = _session.perfil === 'admin'
+        ? raw
+        : raw.filter(r => r['Responsable'] === _session.nombre);
       document.getElementById('loadingState').style.display = 'none';
       document.getElementById('tableContainer').style.display = 'block';
       populateResponsables();
@@ -99,16 +111,16 @@
     }
 
     function getFiltered() {
-      const q = document.getElementById('filterSearch').value.trim().toLowerCase();
-      const etapa = document.getElementById('filterEtapa').value;
-      const estado = document.getElementById('filterEstado').value;
-      const resp = document.getElementById('filterResponsable').value;
+      const q       = document.getElementById('filterSearch').value.trim().toLowerCase();
+      const estado  = document.getElementById('filterEstado').value;
+      const practica= document.getElementById('filterPractica').value;
+      const resp    = document.getElementById('filterResponsable').value;
       return allRows.filter(r => {
-        if (etapa && r['Etapa']!==etapa) return false;
-        if (estado && r['Estado']!==estado) return false;
-        if (resp && r['Responsable']!==resp) return false;
+        if (estado   && r['Estado']        !== estado)   return false;
+        if (practica && r['Práctica/Área'] !== practica) return false;
+        if (resp     && r['Responsable']   !== resp)     return false;
         if (q) {
-          const h = [r['ID'],r['Nombre de Oportunidad'],r['Empresa / Cliente'],r['Contacto']].join(' ').toLowerCase();
+          const h = [r['ID'], r['Cliente'], r['Nombre de la Oportunidad'], r['Responsable']].join(' ').toLowerCase();
           if (!h.includes(q)) return false;
         }
         return true;
@@ -116,32 +128,30 @@
     }
 
     function sort(key) {
-      if (sortKey===key) sortDir*=-1; else { sortKey=key; sortDir=1; }
+      if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
       renderTable();
     }
 
     function renderTable() {
       const rows = getFiltered().sort((a,b) => {
-        let av=a[sortKey]||'', bv=b[sortKey]||'';
-        if (!isNaN(parseFloat(av))&&!isNaN(parseFloat(bv))) return (parseFloat(av)-parseFloat(bv))*sortDir;
+        let av = a[sortKey]||'', bv = b[sortKey]||'';
+        if (!isNaN(parseFloat(av)) && !isNaN(parseFloat(bv))) return (parseFloat(av)-parseFloat(bv))*sortDir;
         return String(av).localeCompare(String(bv))*sortDir;
       });
+
       document.getElementById('countLabel').textContent = `${rows.length} oportunidad${rows.length!==1?'es':''}`;
-      const body = document.getElementById('tableBody');
+      const body  = document.getElementById('tableBody');
       const empty = document.getElementById('emptyState');
-      if (rows.length===0) { body.innerHTML=''; empty.style.display='block'; return; }
-      empty.style.display='none';
-      body.innerHTML = rows.map(r=>`
+
+      if (rows.length === 0) { body.innerHTML=''; empty.style.display='block'; return; }
+      empty.style.display = 'none';
+      body.innerHTML = rows.map(r => `
         <tr>
           <td class="col-id">#${r['ID']}</td>
-          <td style="font-weight:600;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r['Nombre de Oportunidad']||'—'}</td>
-          <td style="color:var(--text-muted)">${r['Empresa / Cliente']||'—'}</td>
-          <td><span class="badge ${badgeClass(r['Etapa'])}">${r['Etapa']||'—'}</span></td>
-          <td class="col-valor">${r['Valor Estimado (USD)']?'$'+Number(r['Valor Estimado (USD)']).toLocaleString('es-AR'):'—'}</td>
-          <td style="text-align:center">${r['Probabilidad (%)']?r['Probabilidad (%)']+'%':'—'}</td>
-          <td>${r['Responsable']||'—'}</td>
-          <td style="color:var(--text-muted)">${r['Fecha Cierre Est.']||'—'}</td>
-          <td><span class="badge ${badgeClass(r['Estado'])}">${r['Estado']||'—'}</span></td>
+          <td style="font-weight:600">${r['Cliente']||'—'}</td>
+          <td style="max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r['Nombre de la Oportunidad']||'—'}</td>
+          <td style="color:var(--text-muted)">${r['Responsable']||'—'}</td>
+          <td><span class="badge ${badgeEstado(r['Estado'])}">${r['Estado']||'—'}</span></td>
           <td class="col-action"><button class="btn-sm" onclick="editRow('${r['ID']}')">Editar</button></td>
         </tr>`).join('');
     }
@@ -155,7 +165,9 @@
       frame.onload = function() { try { frame.contentWindow.loadItem(id); } catch(e) {} };
     }
 
-    function badgeClass(e) { return {'Prospecto':'badge-prospecto','Calificación':'badge-calificación','Propuesta':'badge-propuesta','Negociación':'badge-negociación','Cerrado Ganado':'badge-ganado','Cerrado Perdido':'badge-perdido','Activa':'badge-activa','En pausa':'badge-pausa','Cerrada':'badge-cerrada'}[e]||''; }
+    function badgeEstado(e) {
+      return {'En Desarrollo':'badge-propuesta','Entregada':'badge-calificación','Finalizada':'badge-ganado'}[e]||'';
+    }
 
     init();
   </script>
