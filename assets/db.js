@@ -3,16 +3,16 @@
 const API_URL = 'https://sheetdb.io/api/v1/c3aj6u51o6sn2';
 
 const COLUMNS = [
-  'ID', 'Nombre de Oportunidad', 'Empresa / Cliente', 'Contacto',
-  'Email', 'Teléfono', 'Valor Estimado (USD)', 'Moneda', 'Etapa',
-  'Probabilidad (%)', 'Fecha Creación', 'Fecha Cierre Est.',
-  'Responsable', 'Origen', 'Producto / Servicio', 'Descripción',
-  'Próximo Paso', 'Estado', 'Notas'
+  'ID', 'Cliente', 'Industria', 'Práctica/Área',
+  'Nombre de la Oportunidad', 'Descripción', 'Origen',
+  'Responsable', 'Estado', 'Fecha de Inicio', 'Fecha de Entrega',
+  'Notas', 'TCV', 'Currency', 'TCV EUR', 'Tipo de Cambio',
+  '% Probabilidad', '% PM', 'Fecha Creación'
 ];
 
-const ETAPAS   = ['Prospecto', 'Calificación', 'Propuesta', 'Negociación', 'Cerrado Ganado', 'Cerrado Perdido'];
-const ORIGENES = ['Referido', 'Web', 'LinkedIn', 'Email frío', 'Evento', 'Partner', 'Otro'];
-const ESTADOS  = ['Activa', 'En pausa', 'Cerrada'];
+const ETAPAS   = ['En Desarrollo', 'Entregada', 'Finalizada'];
+const ORIGENES = ['Fertilización', 'Otro', 'Proyecto', 'Renovación', 'RFP'];
+const ESTADOS  = ['En Desarrollo', 'Entregada', 'Finalizada'];
 
 let _cache = null;
 let _cacheTs = 0;
