@@ -78,6 +78,7 @@
   </div>
 
   <script>
+  (function() {
     const _session = AUTH.requireAuth(); if(!_session) throw new Error("no auth");
 
     const PALETTE = ['#8a38fe','#0f0f0f','#93c5fd','#fde68a','#86efac','#fca5a5','#fdba74','#e9d5ff','#a7f3d0','#cbd5e1'];
@@ -180,6 +181,7 @@
     }
 
     render();
+  })();
   </script>
 </body>
 </html>
