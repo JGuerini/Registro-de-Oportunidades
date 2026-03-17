@@ -1,6 +1,6 @@
 // assets/auth.js — Sistema de autenticación via Apps Script
 
-const USERS_API = 'https://script.google.com/macros/s/AKfycbxWUeqpwVJkKWgHKl0zOj0cZRaV2PfjRpPXH8LFHgu0NVFA3GddnJZg_s0t48y-YlsuEA/exec';
+const USERS_API = 'https://oportunidadesar.javier-sd-atos.workers.dev';
 const SESSION_KEY = 'presales_ar_session';
 
 async function sha256(str) {
@@ -10,7 +10,7 @@ async function sha256(str) {
 
 // Llamada GET con parámetros — mismo patrón que db.js
 async function apiCall(params) {
-  const url = USERS_API + '?' + new URLSearchParams(params).toString();
+  const url = USERS_API + '?' + new URLSearchParams({ target: 'usuarios', ...params }).toString();
   const res  = await fetch(url, { method: 'GET', redirect: 'follow' });
   const text = await res.text();
   try {

@@ -1,6 +1,6 @@
 // assets/db.js — Gestión de datos via SheetDB
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbzB2r-yp_xtWlZadlTkP8ShFYJyCjEPNWkfksTxxMOZ2tReUJuDgtp2W_Idh2HCRlYm/exec';
+const API_URL = 'https://oportunidadesar.javier-sd-atos.workers.dev';
 
 const COLUMNS = [
   'ID', 'Cliente', 'Industria', 'Práctica/Área',
