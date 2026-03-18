@@ -591,6 +591,24 @@
   </main>
 </div><!-- end layout -->
 
+<!-- MODAL VER OPORTUNIDAD -->
+<div class="modal-overlay" id="verModalOverlay" onclick="closeVerModal(event)">
+  <div class="modal" style="max-width:600px;max-height:85vh;overflow-y:auto" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div>
+        <div id="verModalId" style="font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.05em;text-transform:uppercase"></div>
+        <div id="verModalTitle" style="font-size:18px;font-weight:700;margin-top:2px"></div>
+      </div>
+      <button onclick="closeVerModal()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:20px;padding:4px;line-height:1">✕</button>
+    </div>
+    <div id="verModalContent"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px;padding-top:16px;border-top:1px solid var(--border)">
+      <button class="btn btn-ghost" onclick="closeVerModal()">Cerrar</button>
+      <button class="btn btn-primary" id="verModalEditBtn" onclick="">Editar →</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL USUARIOS -->
 <div class="modal-overlay" id="userModalOverlay">
   <div class="modal">
@@ -1052,13 +1070,76 @@ function renderTabla() {
       <td style="max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r['Nombre de la Oportunidad']||'—'}</td>
       <td style="color:var(--text-muted)">${r['Responsable']||'—'}</td>
       <td><span class="badge ${badgeEstado(r['Estado'])}">${r['Estado']||'—'}</span></td>
-      <td class="col-action"><button class="btn-sm" onclick="editFromTabla('${r['ID']}')">Editar</button></td>
+      <td class="col-action" style="display:flex;gap:6px;justify-content:center"><button class="btn-sm" onclick="verOportunidad('${r['ID']}')">Ver</button><button class="btn-sm" onclick="editFromTabla('${r['ID']}')">Editar</button></td>
     </tr>`).join('');
 }
 
 function editFromTabla(id) {
   navigate(document.querySelector('[data-page="modificar"]'));
   setTimeout(() => loadModItem(id), 100);
+}
+
+function verOportunidad(id) {
+  const r = _tablaRows.find(x => x['ID'] === id);
+  if (!r) return;
+
+  document.getElementById('verModalId').textContent = `ID #${r['ID']}`;
+  document.getElementById('verModalTitle').textContent = r['Nombre de la Oportunidad'] || '—';
+  document.getElementById('verModalEditBtn').setAttribute('onclick', `closeVerModal(); editFromTabla('${id}')`);
+
+  const fmtVal = v => v || '—';
+  const fmtEUR = v => v ? '€ ' + parseFloat(v).toLocaleString('es-AR', {minimumFractionDigits:2}) : '—';
+  const fmtNum = v => v ? parseFloat(v).toLocaleString('es-AR') : '—';
+
+  const sections = [
+    {
+      title: 'Información General',
+      rows: [
+        ['Cliente',        r['Cliente']],
+        ['Industria',      r['Industria']],
+        ['Práctica/Área',  r['Práctica/Área']],
+        ['Descripción',    r['Descripción']],
+        ['Origen',         r['Origen']],
+      ]
+    },
+    {
+      title: 'BID',
+      rows: [
+        ['Responsable',     r['Responsable']],
+        ['Estado',          `<span class="badge ${badgeEstado(r['Estado'])}">${r['Estado']||'—'}</span>`],
+        ['Fecha de Inicio', fmtVal(r['Fecha de Inicio'])],
+        ['Fecha de Entrega',fmtVal(r['Fecha de Entrega'])],
+        ['Notas',           r['Notas']],
+      ]
+    },
+    {
+      title: 'Datos Comerciales',
+      rows: [
+        ['TCV',             fmtNum(r['TCV']) + (r['Currency'] ? ' ' + r['Currency'] : '')],
+        ['TCV EUR',         fmtEUR(r['TCV EUR'])],
+        ['Tipo de Cambio',  fmtVal(r['Tipo de Cambio'])],
+        ['% Probabilidad',  r['% Probabilidad'] ? r['% Probabilidad'] + '%' : '—'],
+        ['% PM',            r['% PM'] ? r['% PM'] + '%' : '—'],
+      ]
+    },
+  ];
+
+  document.getElementById('verModalContent').innerHTML = sections.map(s => `
+    <div style="margin-bottom:20px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">${s.title}</div>
+      ${s.rows.filter(([,v]) => v && v !== '—').map(([label, val]) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+          <span style="color:var(--text-muted);font-weight:500;flex-shrink:0;margin-right:16px">${label}</span>
+          <span style="font-weight:600;text-align:right">${val}</span>
+        </div>`).join('')}
+    </div>`).join('');
+
+  document.getElementById('verModalOverlay').classList.add('open');
+}
+
+function closeVerModal(event) {
+  if (event && event.target !== document.getElementById('verModalOverlay')) return;
+  document.getElementById('verModalOverlay').classList.remove('open');
 }
 
 async function downloadExcelAction() {
