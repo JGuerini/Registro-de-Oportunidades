@@ -720,8 +720,18 @@ applyTheme(getSavedTheme());
 const API_URL = 'https://oportunidadesar.javier-sd-atos.workers.dev';
 const COLUMNS = ['ID','Cliente','Industria','Práctica/Área','Nombre de la Oportunidad','Descripción','Origen','Responsable','Estado','Fecha de Inicio','Fecha de Entrega','Notas','TCV','Currency','TCV EUR','Tipo de Cambio','% Probabilidad','% PM','Fecha Creación'];
 const ESTADOS = ['En Desarrollo','Entregada','Finalizada'];
-const ESTADO_COLORS = {'En Desarrollo':'#93c5fd','Entregada':'#fde68a','Finalizada':'#86efac'};
-const PALETTE = ['#8a38fe','#0f0f0f','#93c5fd','#fde68a','#86efac','#fca5a5','#fdba74','#e9d5ff','#a7f3d0','#cbd5e1'];
+const ESTADO_COLORS = {'En Desarrollo':'#fde68a','Entregada':'#93c5fd','Finalizada':'#86efac'};
+const PALETTE = ['#8a38fe','#93c5fd','#fde68a','#86efac','#fca5a5','#fdba74','#e9d5ff','#a7f3d0','#cbd5e1','#f9a8d4','#6ee7b7','#fcd34d','#a5b4fc','#67e8f9','#d9f99d','#c4b5fd','#fb923c','#34d399','#f472b6','#60a5fa'];
+
+// Hash determinístico: mismo nombre → mismo color, nunca negro
+function colorForValue(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    hash |= 0;
+  }
+  return PALETTE[Math.abs(hash) % PALETTE.length];
+}
 
 let _cache = null, _cacheTs = 0;
 const CACHE_TTL = 300000; // 5 minutos
@@ -805,7 +815,7 @@ function setStatus(state) {
 // HELPERS
 // ══════════════════════════════════════════════
 function fmtEUR(n) { return '€' + Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0}); }
-function badgeEstado(e) { return {'En Desarrollo':'badge-propuesta','Entregada':'badge-calificación','Finalizada':'badge-ganado'}[e]||''; }
+function badgeEstado(e) { return {'En Desarrollo':'badge-calificación','Entregada':'badge-propuesta','Finalizada':'badge-ganado'}[e]||''; }
 function showAlert(id, msg, type) {
   const box = document.getElementById(id);
   box.textContent = msg; box.className = `alert alert-${type} show`;
