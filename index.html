@@ -734,7 +734,27 @@ function colorForValue(str) {
 }
 
 let _cache = null, _cacheTs = 0;
-const CACHE_TTL = 300000; // 5 minutos
+const CACHE_TTL    = 300000; // 5 minutos
+const LS_CACHE_KEY = 'presales_ar_data_cache';
+const LS_CACHE_TS  = 'presales_ar_data_ts';
+
+// Persistir caché en localStorage
+function saveLocalCache(data) {
+  try {
+    localStorage.setItem(LS_CACHE_KEY, JSON.stringify(data));
+    localStorage.setItem(LS_CACHE_TS, Date.now().toString());
+  } catch(e) {}
+}
+
+// Leer caché de localStorage
+function loadLocalCache() {
+  try {
+    const raw = localStorage.getItem(LS_CACHE_KEY);
+    const ts  = parseInt(localStorage.getItem(LS_CACHE_TS) || '0');
+    if (raw) return { data: JSON.parse(raw), ts };
+  } catch(e) {}
+  return null;
+}
 
 async function crmCall(params) {
   const url = API_URL + '?' + new URLSearchParams({ target: 'oportunidades', ...params }).toString();
@@ -742,30 +762,76 @@ async function crmCall(params) {
   return JSON.parse(await res.text());
 }
 
-async function getData(forceRefresh = false) {
-  if (!forceRefresh && _cache && (Date.now() - _cacheTs) < CACHE_TTL) return _cache;
+// Fetch en background y actualizar UI si los datos cambiaron
+async function _fetchFresh(onUpdate) {
   try {
     const json = await crmCall({ action: 'get' });
-    if (json.ok) { _cache = json.data || []; _cacheTs = Date.now(); return _cache; }
+    if (json.ok) {
+      const newData = json.data || [];
+      const changed = JSON.stringify(newData) !== JSON.stringify(_cache);
+      _cache  = newData;
+      _cacheTs = Date.now();
+      saveLocalCache(_cache);
+      if (changed && onUpdate) onUpdate(_cache);
+    }
+  } catch(e) { console.error('background fetch error:', e); }
+}
+
+// getData: stale-while-revalidate
+// - Si hay caché en memoria → devuelve inmediato, refresca en background
+// - Si no hay en memoria pero sí en localStorage → devuelve localStorage, refresca en background
+// - Si no hay nada → espera el fetch
+async function getData(forceRefresh = false, onUpdate = null) {
+  // Cache en memoria válido
+  if (!forceRefresh && _cache && (Date.now() - _cacheTs) < CACHE_TTL) {
+    _fetchFresh(onUpdate); // refresca silenciosamente en background
+    return _cache;
+  }
+  // Intentar localStorage
+  const local = loadLocalCache();
+  if (!forceRefresh && local && (Date.now() - local.ts) < CACHE_TTL) {
+    _cache  = local.data;
+    _cacheTs = local.ts;
+    _fetchFresh(onUpdate); // refresca en background
+    return _cache;
+  }
+  // Sin caché válido — esperar fetch
+  try {
+    const json = await crmCall({ action: 'get' });
+    if (json.ok) {
+      _cache  = json.data || [];
+      _cacheTs = Date.now();
+      saveLocalCache(_cache);
+      return _cache;
+    }
     throw new Error(json.error);
-  } catch(e) { console.error('getData error:', e); return _cache || []; }
+  } catch(e) {
+    console.error('getData error:', e);
+    return _cache || (local ? local.data : []);
+  }
+}
+
+function invalidateCache() {
+  _cache = null;
+  _cacheTs = 0;
+  try { localStorage.removeItem(LS_CACHE_KEY); localStorage.removeItem(LS_CACHE_TS); } catch(e) {}
 }
 
 async function addOportunidad(data) {
   const json = await crmCall({ action: 'add', data: JSON.stringify(data) });
-  if (json.ok) { _cache = null; return json.id; }
+  if (json.ok) { invalidateCache(); return json.id; }
   throw new Error(json.error);
 }
 
 async function updateOportunidad(id, data) {
   const json = await crmCall({ action: 'update', id, data: JSON.stringify(data) });
-  if (json.ok) { _cache = null; return true; }
+  if (json.ok) { invalidateCache(); return true; }
   throw new Error(json.error);
 }
 
 async function deleteOportunidad(id) {
   const json = await crmCall({ action: 'delete', id });
-  if (json.ok) { _cache = null; return true; }
+  if (json.ok) { invalidateCache(); return true; }
   throw new Error(json.error);
 }
 
@@ -1413,6 +1479,13 @@ function showModalAlert(msg) {
   // Connection check
   checkConexion();
   setInterval(checkConexion, 60000);
+
+  // Prefetch datos en background inmediatamente
+  getData(false, () => {
+    // Si los datos cambiaron mientras el usuario estaba en home, re-render silencioso
+    const activeSection = document.querySelector('.page-section.active');
+    if (activeSection && activeSection.id === 'page-home') renderHome();
+  });
 
   // Load home data
   renderHome();
