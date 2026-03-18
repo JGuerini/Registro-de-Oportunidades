@@ -644,6 +644,34 @@ const USERS_API   = 'https://oportunidadesar.javier-sd-atos.workers.dev';
 const SESSION_KEY = 'presales_ar_session';
 const THEME_KEY_PREFIX = 'presales_ar_theme_';
 
+// Convierte cualquier formato de fecha a YYYY-MM-DD para input[type=date]
+function toInputDate(val) {
+  if (!val || val === '') return '';
+  // Ya está en formato YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+  // Formato DD/MM/YYYY
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(val)) {
+    const [d, m, y] = val.split('/');
+    return `${y}-${m}-${d}`;
+  }
+  // Formato con hora (ISO o similar)
+  try {
+    const date = new Date(val);
+    if (!isNaN(date.getTime())) {
+      return date.toISOString().slice(0, 10);
+    }
+  } catch(e) {}
+  return '';
+}
+
+// Formatea fecha para mostrar en español (sin hora)
+function fmtFecha(val) {
+  if (!val || val === '') return '—';
+  const d = new Date(toInputDate(val) + 'T12:00:00');
+  if (isNaN(d.getTime())) return val;
+  return d.toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
 async function sha256(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
@@ -942,8 +970,8 @@ function loadModItem(id) {
   document.getElementById('e_origen').value       = r['Origen']||'';
   document.getElementById('e_responsable').value  = r['Responsable']||'';
   document.getElementById('e_estado').value       = r['Estado']||'';
-  document.getElementById('e_fechaInicio').value  = r['Fecha de Inicio']||'';
-  document.getElementById('e_fechaEntrega').value = r['Fecha de Entrega']||'';
+  document.getElementById('e_fechaInicio').value  = toInputDate(r['Fecha de Inicio']);
+  document.getElementById('e_fechaEntrega').value = toInputDate(r['Fecha de Entrega']);
   document.getElementById('e_notas').value        = r['Notas']||'';
   document.getElementById('e_tcv').value          = r['TCV']||'';
   document.getElementById('e_currency').value     = r['Currency']||'';
@@ -1107,8 +1135,8 @@ function verOportunidad(id) {
       rows: [
         ['Responsable',     r['Responsable']],
         ['Estado',          `<span class="badge ${badgeEstado(r['Estado'])}">${r['Estado']||'—'}</span>`],
-        ['Fecha de Inicio', fmtVal(r['Fecha de Inicio'])],
-        ['Fecha de Entrega',fmtVal(r['Fecha de Entrega'])],
+        ['Fecha de Inicio', fmtFecha(r['Fecha de Inicio'])],
+        ['Fecha de Entrega', fmtFecha(r['Fecha de Entrega'])],
         ['Notas',           r['Notas']],
       ]
     },
