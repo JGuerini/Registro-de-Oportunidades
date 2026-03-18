@@ -1245,7 +1245,7 @@ async function renderStats() {
 
   const respC={};rows.forEach(r=>{if(r['Responsable'])respC[r['Responsable']]=(respC[r['Responsable']]||0)+1;});
   const respK=Object.keys(respC).sort((a,b)=>respC[b]-respC[a]).slice(0,8);
-  _statsCharts.resp=new Chart(document.getElementById('chartResp'),{type:'bar',data:{labels:respK.length?respK:['Sin datos'],datasets:[{data:respK.length?respK.map(k=>respC[k]):[0],backgroundColor:'#0f0f0f',borderRadius:6,borderSkipped:false}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#f0ede6'},ticks:{stepSize:1}},y:{grid:{display:false}}},maintainAspectRatio:false}});
+  _statsCharts.resp=new Chart(document.getElementById('chartResp'),{type:'bar',data:{labels:respK.length?respK:['Sin datos'],datasets:[{data:respK.length?respK.map(k=>respC[k]):[0],backgroundColor:respK.length?respK.map(k=>colorForValue(k)):['#8a38fe'],borderRadius:6,borderSkipped:false}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#f0ede6'},ticks:{stepSize:1}},y:{grid:{display:false}}},maintainAspectRatio:false}});
 
   const pracC={};rows.forEach(r=>{if(r['Práctica/Área'])pracC[r['Práctica/Área']]=(pracC[r['Práctica/Área']]||0)+1;});
   const pracK=Object.keys(pracC).sort((a,b)=>pracC[b]-pracC[a]);
