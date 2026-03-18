@@ -184,16 +184,6 @@
     .filters input, .filters select { flex:1;min-width:140px;max-width:220px; }
     .sort-th { cursor:pointer;user-select:none; }
     .sort-th:hover { color:var(--text); }
-    .warn-icon { position:relative; display:inline-flex; align-items:center; margin-left:6px; cursor:default; vertical-align:middle; }
-    .warn-icon svg { width:15px; height:15px; flex-shrink:0; }
-    .warn-icon .warn-tooltip {
-      display:none; position:fixed; background:#0f0f0f; color:#fff;
-      padding:5px 10px; border-radius:6px; font-size:11px; font-weight:600;
-      white-space:nowrap; pointer-events:none; z-index:9999;
-      transform:translateX(-50%);
-    }
-    .warn-icon:hover .warn-tooltip { display:block; }
-    .table-wrap { overflow:visible; }
     .col-id { color:var(--text-muted);font-size:12px; }
     .col-action { text-align:center; }
 
@@ -930,58 +920,6 @@ function setStatus(state) {
 // HELPERS
 // ══════════════════════════════════════════════
 function fmtEUR(n) { return '€' + Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0}); }
-function parseSheetDate(val) {
-  if (!val || val.trim() === '') return null;
-  // Formato completo: "Wed Mar 18 2026 00:00:00 GMT-0300 ..."
-  const d = new Date(val);
-  if (!isNaN(d.getTime())) return d;
-  // Fallback: toInputDate para otros formatos
-  const iso = toInputDate(val);
-  if (!iso) return null;
-  const d2 = new Date(iso + 'T12:00:00');
-  return isNaN(d2.getTime()) ? null : d2;
-}
-
-function diasEntreCreacionYMod(r) {
-  const fechaMod  = r['Fecha de Modificación'];
-  const fechaCrea = r['Fecha Creación'];
-  if (!fechaMod || !fechaCrea) return 0;
-  const dMod  = parseSheetDate(fechaMod);
-  const dCrea = parseSheetDate(fechaCrea);
-  if (!dMod || !dCrea) return 0;
-  return Math.floor((dMod.getTime() - dCrea.getTime()) / 86400000);
-}
-
-function warnIcon(r) {
-  const dias = diasEntreCreacionYMod(r);
-  if (dias <= 10) return '';
-  const txt = `Última vez modificada hace ${dias} día${dias!==1?'s':''}`;
-  return `<span class="warn-icon" onmouseenter="positionTooltip(event)" onmouseleave="hideTooltip()">
-    <svg fill="none" viewBox="0 0 18 18" stroke="#ef4444" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M9 2L1.5 15.5h15L9 2z"/>
-      <path d="M9 8v3.5"/>
-      <circle cx="9" cy="14" r="0.5" fill="#ef4444"/>
-    </svg>
-    <span class="warn-tooltip" id="warnTooltip">${txt}</span>
-  </span>`;
-}
-
-// Tooltip positioning using fixed coords to avoid overflow clipping
-let _activeTooltip = null;
-function positionTooltip(e) {
-  const tooltip = e.currentTarget.querySelector('.warn-tooltip');
-  if (!tooltip) return;
-  _activeTooltip = tooltip;
-  const rect = e.currentTarget.getBoundingClientRect();
-  tooltip.style.display = 'block';
-  tooltip.style.left = (rect.left + rect.width / 2) + 'px';
-  tooltip.style.top  = (rect.bottom + 6) + 'px';
-  tooltip.style.transform = 'translateX(-50%)';
-}
-function hideTooltip() {
-  if (_activeTooltip) { _activeTooltip.style.display = 'none'; _activeTooltip = null; }
-}
-
 function canEdit(r) {
   const s = getSession();
   if (!s) return false;
@@ -1284,7 +1222,7 @@ function renderTabla() {
     <tr>
       <td class="col-id">#${r['ID']}</td>
       <td style="font-weight:600">${r['Cliente']||'—'}</td>
-      <td style="max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r['Nombre de la Oportunidad']||'—'}${warnIcon(r)}</td>
+      <td style="max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r['Nombre de la Oportunidad']||'—'}</td>
       <td style="color:var(--text-muted)">${r['Responsable']||'—'}</td>
       <td><span class="badge ${badgeEstado(r['Estado'])}">${r['Estado']||'—'}</span></td>
       <td class="col-action" style="display:flex;gap:6px;justify-content:center"><button class="btn-sm" onclick="verOportunidad('${r['ID']}')" >Ver</button>${canEdit(r)?`<button class="btn-sm" onclick="editFromTabla('${r['ID']}')">Editar</button>`:''}</td>
