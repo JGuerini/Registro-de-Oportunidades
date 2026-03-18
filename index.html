@@ -1,331 +1,246 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>PRESALES AR</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <script src="assets/auth.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #f4f3f7;
-      --surface: #ffffff;
-      --sidebar-bg: #0f0f0f;
-      --sidebar-dark: #0a0a0a;
-      --sidebar-w: 240px;
-      --sidebar-collapsed: 64px;
-      --accent: #8a38fe;
-      --accent-dark: #6f2ed4;
-      --text: #0f0f0f;
-      --text-muted: #888;
-      --border: #e8e6e0;
-      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --bg: #f4f3f7; --surface: #ffffff; --accent: #8a38fe; --accent-dark: #6f2ad4;
+      --text: #0f0f0f; --text-muted: #888; --border: #e5e0f0;
+      --danger: #ef4444; --success: #22c55e; --warning: #f59e0b;
+      --sidebar-w: 240px; --sidebar-collapsed: 64px;
+      --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
     }
+    body.dark-mode {
+      --bg: #1e1e1e; --surface: #393937; --text: #f0f0f0; --text-muted: #888; --border: #2e2e2e;
+    }
+    html, body { height: 100%; font-family: 'Montserrat', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
 
-    html, body {
-      height: 100%;
-      font-family: 'Montserrat', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      overflow: hidden;
-    }
-
-    .layout {
-      display: flex;
-      height: 100vh;
-    }
+    /* ── LAYOUT ── */
+    .layout { display: flex; height: 100vh; }
 
     /* ── SIDEBAR ── */
     .sidebar {
-      width: var(--sidebar-w);
-      min-width: var(--sidebar-w);
-      background: var(--sidebar-bg);
-      transition: width var(--transition), min-width var(--transition), background 0.3s;
-      display: flex;
-      flex-direction: column;
+      width: var(--sidebar-w); min-width: var(--sidebar-w);
+      background: #0f0f0f; display: flex; flex-direction: column;
       transition: width var(--transition), min-width var(--transition);
-      overflow: hidden;
-      position: relative;
-      z-index: 10;
+      overflow: hidden; position: relative; z-index: 10;
     }
-
-    .sidebar.collapsed {
-      width: var(--sidebar-collapsed);
-      min-width: var(--sidebar-collapsed);
-    }
-
+    body.dark-mode .sidebar { background: #0a0a0a; }
+    .sidebar.collapsed { width: var(--sidebar-collapsed); min-width: var(--sidebar-collapsed); }
     .sidebar-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 24px 16px 20px;
-      border-bottom: 1px solid #1e1e1e;
-      min-height: 72px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 16px 20px; border-bottom: 1px solid #1e1e1e; min-height: 72px;
     }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      overflow: hidden;
-    }
-
+    body.dark-mode .sidebar-header { border-bottom-color: #1a1a1a; }
+    .logo { display: flex; align-items: center; gap: 10px; overflow: hidden; }
     .logo-icon {
-      width: 32px;
-      height: 32px;
-      background: var(--accent);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
+      width: 32px; height: 32px; background: var(--accent); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-
     .logo-icon svg { width: 18px; height: 18px; }
-
-    .logo-text {
-      font-size: 14px;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: 0.05em;
-      white-space: nowrap;
-      opacity: 1;
-      transition: opacity var(--transition);
-    }
-
+    .logo-text { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: 0.05em; white-space: nowrap; opacity: 1; transition: opacity var(--transition); }
     .sidebar.collapsed .logo-text { opacity: 0; }
-
-    .toggle-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #555;
-      padding: 4px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      transition: color 0.2s;
-      flex-shrink: 0;
-    }
-
+    .toggle-btn { background: none; border: none; cursor: pointer; color: #555; padding: 4px; border-radius: 4px; display: flex; align-items: center; transition: color 0.2s; flex-shrink: 0; }
     .toggle-btn:hover { color: var(--accent); }
-
-    .toggle-btn svg {
-      width: 18px;
-      height: 18px;
-      transition: transform var(--transition);
-    }
-
+    .toggle-btn svg { width: 18px; height: 18px; transition: transform var(--transition); }
     .sidebar.collapsed .toggle-btn svg { transform: rotate(180deg); }
-
-    /* NAV */
-    .nav {
-      flex: 1;
-      padding: 16px 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 12px;
-      border-radius: 10px;
-      cursor: pointer;
-      color: #999;
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 0.02em;
-      transition: background 0.2s, color 0.2s;
-      white-space: nowrap;
-      border: none;
-      background: none;
-      width: 100%;
-      text-align: left;
-    }
-
-    .nav-item:hover {
-      background: #1a1a1a;
-      color: #fff;
-    }
-
-    .nav-item.active {
-      background: #1a1a1a;
-      color: var(--accent);
-    }
-
-    .nav-item svg {
-      width: 18px;
-      height: 18px;
-      flex-shrink: 0;
-    }
-
-    .nav-label {
-      opacity: 1;
-      transition: opacity var(--transition);
-      overflow: hidden;
-    }
-
-    .sidebar.collapsed .nav-label { opacity: 0; }
-
-    .nav-divider {
-      height: 1px;
-      background: #1e1e1e;
-      margin: 8px 12px;
-    }
-
-    .sidebar-footer {
-      padding: 16px;
-      border-top: 1px solid #1e1e1e;
-    }
-
-    .version {
-      font-size: 10px;
-      color: #444;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      white-space: nowrap;
-      overflow: hidden;
-      transition: opacity var(--transition);
-    }
-
-    .sidebar.collapsed .version { opacity: 0; }
-
-    /* ── MAIN ── */
-    .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .topbar {
-      height: 56px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 28px;
-      gap: 16px;
-    }
-
-    .topbar-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
-      letter-spacing: 0.03em;
-    }
-
-    .topbar-breadcrumb {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .topbar-breadcrumb span {
-      color: var(--text);
-      font-weight: 500;
-    }
-
-    .topbar-right {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #aaa;
-      transition: background 0.3s, box-shadow 0.3s;
-    }
-    .status-dot.conectado {
-      background: #22c55e;
-      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
-    }
-    .status-dot.sincronizando {
-      background: #8a38fe;
-      box-shadow: 0 0 0 2px rgba(138, 56, 254, 0.2);
-      animation: pulse 1s infinite;
-    }
-    .status-dot.error {
-      background: #ef4444;
-      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-    .status-text {
-      font-size: 11px;
-      color: var(--text-muted);
-      font-weight: 500;
-      transition: color 0.3s;
-    }
-
-    .content-frame {
-      flex: 1;
-      border: none;
-      background: var(--bg);
-    }
-
+    .nav { flex: 1; padding: 16px 8px; display: flex; flex-direction: column; gap: 2px; }
     .nav-section-title {
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: #444;
-      padding: 4px 12px 4px;
-      margin-top: 8px;
-      white-space: nowrap;
-      overflow: hidden;
-      opacity: 1;
-      transition: opacity var(--transition);
+      font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      color: #444; padding: 4px 12px; margin-top: 8px; white-space: nowrap;
+      overflow: hidden; opacity: 1; transition: opacity var(--transition);
     }
     .sidebar.collapsed .nav-section-title { opacity: 0; }
-
-    /* Tooltip for collapsed sidebar */
-    .nav-item[data-tooltip] {
-      position: relative;
+    .nav-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px;
+      border-radius: 10px; cursor: pointer; color: #999; font-size: 13px;
+      font-weight: 500; letter-spacing: 0.02em; transition: background 0.2s, color 0.2s;
+      white-space: nowrap; border: none; background: none; width: 100%; text-align: left;
     }
-
+    .nav-item:hover { background: #1a1a1a; color: #fff; }
+    .nav-item.active { background: #1a1a1a; color: var(--accent); }
+    body.dark-mode .nav-item:hover, body.dark-mode .nav-item.active { background: #1a1a1a; }
+    .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .nav-label { opacity: 1; transition: opacity var(--transition); overflow: hidden; }
+    .sidebar.collapsed .nav-label { opacity: 0; }
+    .nav-divider { height: 1px; background: #1e1e1e; margin: 8px 12px; }
+    body.dark-mode .nav-divider { background: #1a1a1a; }
+    .sidebar-footer { padding: 16px; border-top: 1px solid #1e1e1e; }
+    body.dark-mode .sidebar-footer { border-top-color: #1a1a1a; }
+    .version { font-size: 10px; color: #444; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; overflow: hidden; transition: opacity var(--transition); }
+    .sidebar.collapsed .version { opacity: 0; }
+    .nav-item[data-tooltip] { position: relative; }
     .sidebar.collapsed .nav-item[data-tooltip]:hover::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      left: calc(100% + 12px);
-      top: 50%;
-      transform: translateY(-50%);
-      background: #1a1a1a;
-      color: #fff;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 500;
-      white-space: nowrap;
-      pointer-events: none;
-      z-index: 100;
-      border: 1px solid #2a2a2a;
+      content: attr(data-tooltip); position: absolute; left: calc(100% + 12px); top: 50%;
+      transform: translateY(-50%); background: #1a1a1a; color: #fff; padding: 6px 12px;
+      border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap;
+      pointer-events: none; z-index: 100; border: 1px solid #2a2a2a;
     }
-  body.dark-mode .sidebar { background: #0a0a0a; }
-  body.dark-mode .sidebar-header { border-bottom-color: #1a1a1a; }
-  body.dark-mode .nav-divider { background: #1a1a1a; }
-  body.dark-mode .sidebar-footer { border-top-color: #1a1a1a; }
-  body.dark-mode .nav-item:hover { background: #1a1a1a; }
-  body.dark-mode .nav-item.active { background: #1a1a1a; }
-  body.dark-mode .topbar { background: #393937; border-bottom-color: #2e2e2e; }
-  body.dark-mode .topbar-breadcrumb { color: #888; }
-  body.dark-mode .topbar-breadcrumb span { color: #f0f0f0; }
-  body.dark-mode #userName { color: #f0f0f0 !important; }
-  body.dark-mode #userPerfil { color: #888 !important; }
-  body.dark-mode .nav-item[data-tooltip]:hover::after { background: #1a1a1a; border-color: #333; }
-  body.dark-mode #userName { color: #f0f0f0 !important; }
-  body.dark-mode #userPerfil { color: #888 !important; }
+
+    /* ── MAIN ── */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar {
+      height: 56px; background: var(--surface); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 28px; gap: 16px; flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    body.dark-mode .topbar { background: var(--surface); }
+    .topbar-breadcrumb { font-size: 12px; color: var(--text-muted); }
+    .topbar-breadcrumb span { color: var(--text); font-weight: 500; }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #aaa; transition: background 0.3s, box-shadow 0.3s; }
+    .status-dot.conectado { background: #22c55e; box-shadow: 0 0 0 2px rgba(34,197,94,0.2); }
+    .status-dot.sincronizando { background: var(--accent); box-shadow: 0 0 0 2px rgba(138,56,254,0.2); animation: pulse 1s infinite; }
+    .status-dot.error { background: #ef4444; box-shadow: 0 0 0 2px rgba(239,68,68,0.2); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .status-text { font-size: 11px; color: var(--text-muted); font-weight: 500; transition: color 0.3s; }
+    .page-content { flex: 1; overflow-y: auto; background: var(--bg); }
+    .page-section { display: none; padding: 32px; min-height: 100%; }
+    .page-section.active { display: block; }
+
+    /* ── SHARED COMPONENTS ── */
+    h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: var(--text-muted); font-weight: 400; margin-bottom: 32px; }
+    .card { background: var(--surface); border-radius: 16px; padding: 28px; border: 1px solid var(--border); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1/-1; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+    .two-col-form { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+    input, select, textarea {
+      font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 500;
+      padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 10px;
+      background: var(--bg); color: var(--text); outline: none; transition: border-color 0.2s; width: 100%;
+    }
+    body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background: #2a2a2a; color: #f0f0f0; border-color: #3a3a3a; }
+    body.dark-mode input:focus, body.dark-mode select:focus, body.dark-mode textarea:focus { background: #333; border-color: var(--accent); }
+    body.dark-mode input::placeholder, body.dark-mode textarea::placeholder { color: #666; }
+    body.dark-mode option { background: var(--surface); color: var(--text); }
+    input:focus, select:focus, textarea:focus { border-color: var(--text); background: var(--surface); }
+    textarea { resize: vertical; min-height: 80px; }
+    .btn {
+      font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600;
+      padding: 11px 24px; border-radius: 10px; border: none; cursor: pointer;
+      letter-spacing: 0.02em; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-primary { background: var(--text); color: #fff !important; }
+    .btn-primary:hover { background: #2a2a2a; }
+    body.dark-mode .btn-primary { background: var(--accent); color: #fff !important; }
+    body.dark-mode .btn-primary:hover { background: var(--accent-dark); }
+    .btn-accent { background: var(--accent); color: #fff; }
+    .btn-accent:hover { background: var(--accent-dark); }
+    .btn-ghost { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--text); }
+    body.dark-mode .btn-ghost { color: #f0f0f0; border-color: #3a3a3a; }
+    body.dark-mode .btn-ghost:hover { border-color: #f0f0f0; }
+    .btn-danger { background: transparent; color: var(--danger); border: 1.5px solid #fecaca; }
+    .btn-danger:hover { background: #fef2f2; }
+    .btn-sm { font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;padding:5px 12px;border-radius:7px;border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--text);transition:border-color 0.2s; }
+    .btn-sm:hover { border-color:var(--text); }
+    body.dark-mode .btn-sm { color: var(--text); border-color: var(--border); }
+    .badge { display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:0.03em; }
+    .badge-prospecto { background:#f1f5f9;color:#64748b; }
+    .badge-propuesta { background:#dbeafe;color:#1d4ed8; }
+    .badge-calificación { background:#fef9c3;color:#a16207; }
+    .badge-ganado { background:#dcfce7;color:#166534; }
+    .badge-perdido { background:#fee2e2;color:#991b1b; }
+    .badge-activa { background:#dcfce7;color:#166534; }
+    .badge-pausa { background:#fef9c3;color:#a16207; }
+    .badge-cerrada { background:#f1f5f9;color:#64748b; }
+    .alert { padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500;margin-bottom:16px;display:none; }
+    .alert-success { background:#dcfce7;color:#166534;border:1px solid #bbf7d0; }
+    .alert-error { background:#fee2e2;color:#991b1b;border:1px solid #fecaca; }
+    .alert.show { display:block; }
+    .table-wrap { overflow-x:auto; }
+    table { width:100%;border-collapse:collapse;font-size:13px; }
+    th { text-align:left;padding:10px 14px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);border-bottom:1.5px solid var(--border);white-space:nowrap; }
+    td { padding:12px 14px;border-bottom:1px solid var(--border);font-weight:500;vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:var(--bg); }
+    body.dark-mode tr:hover td { background:#2a2a2a; }
+    .page-actions { display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px; }
+    .stats-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px; }
+    .empty { text-align:center;padding:60px 20px;color:var(--text-muted); }
+    .empty-icon { font-size:40px;margin-bottom:12px;opacity:0.3; }
+    .empty-text { font-size:14px;font-weight:500; }
+    .empty-sub { font-size:12px;margin-top:6px; }
+    .section-title { font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border); }
+    .section-block { margin-bottom:28px; }
+    .spinner-inline { display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px; }
+    .loading { display:flex;align-items:center;gap:10px;color:var(--text-muted);font-size:13px;padding:40px 0; }
+    .spinner { width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:spin 0.7s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .tcv-eur-display { display:flex;align-items:center;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;color:var(--text);min-height:42px; }
+    .fx-badge { display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);border-radius:6px;padding:3px 8px;margin-left:8px; }
+    .fx-loading { color:var(--text-muted);font-weight:500;font-size:12px; }
+    .filters { display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px; }
+    .filters input, .filters select { flex:1;min-width:140px;max-width:220px; }
+    .sort-th { cursor:pointer;user-select:none; }
+    .sort-th:hover { color:var(--text); }
+    .col-id { color:var(--text-muted);font-size:12px; }
+    .col-action { text-align:center; }
+
+    /* HOME */
+    .hero { background:#0f0f0f;border-radius:20px;padding:40px;margin-bottom:24px;color:#fff;position:relative;overflow:hidden; }
+    .hero::before { content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:var(--accent);border-radius:50%;opacity:0.08; }
+    .hero-eyebrow { font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:10px; }
+    .hero h1 { color:#fff;font-size:28px; }
+    .hero .subtitle { color:#999;margin-bottom:24px; }
+    .hero-actions { display:flex;gap:12px;flex-wrap:wrap; }
+    .quick-stats { display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px; }
+    .qs-card { background:var(--surface);border-radius:14px;padding:20px;border:1px solid var(--border); }
+    .qs-value { font-size:28px;font-weight:700;letter-spacing:-0.04em; }
+    .qs-label { font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-top:4px; }
+    .two-col { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
+    .pipeline-bar { display:flex;height:8px;border-radius:10px;overflow:hidden;gap:2px;margin-top:10px; }
+    .pipeline-segment { height:100%;border-radius:2px;transition:flex 0.4s; }
+    .etapa-legend { display:flex;flex-wrap:wrap;gap:12px;margin-top:14px; }
+    .etapa-item { display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--text-muted); }
+    .etapa-dot { width:8px;height:8px;border-radius:50%; }
+
+    /* CHARTS */
+    .charts-grid { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px; }
+    .chart-card { background:var(--surface);border-radius:16px;padding:24px;border:1px solid var(--border); }
+    .chart-card.full { grid-column:1/-1; }
+    .chart-title { font-size:13px;font-weight:700;margin-bottom:2px; }
+    .chart-sub { font-size:11px;color:var(--text-muted);margin-bottom:18px; }
+    .chart-wrap { position:relative;height:220px; }
+    .kpi-row { display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:8px; }
+    .kpi { background:var(--surface);border-radius:14px;padding:18px 20px;border:1px solid var(--border); }
+    .kpi-val { font-size:24px;font-weight:700;letter-spacing:-0.03em; }
+    .kpi-lbl { font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-muted);margin-top:4px; }
+    .funnel-row { display:flex;align-items:center;gap:12px;margin-bottom:10px; }
+    .funnel-label { font-size:12px;font-weight:600;width:140px;flex-shrink:0; }
+    .funnel-track { flex:1;background:var(--bg);border-radius:6px;height:20px;overflow:hidden; }
+    .funnel-fill { height:100%;border-radius:6px;transition:width 0.6s; }
+    .funnel-count { font-size:12px;font-weight:600;color:var(--text-muted);width:30px;text-align:right; }
+
+    /* MODAL */
+    .modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:var(--surface);color:var(--text);border-radius:20px;padding:32px;width:100%;max-width:440px;border:1px solid var(--border);box-shadow:0 8px 32px rgba(0,0,0,0.2); }
+    .modal-title { font-size:16px;font-weight:700;margin-bottom:4px;color:var(--text); }
+    .modal-sub { font-size:12px;color:var(--text-muted);margin-bottom:24px; }
+
+    /* SEARCH */
+    .search-bar { display:flex;gap:10px;margin-bottom:24px; }
+    .search-bar input { flex:1; }
+    .result-list { display:flex;flex-direction:column;gap:8px;margin-bottom:24px; }
+    .result-item { display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--surface);border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:border-color 0.2s; }
+    .result-item:hover { border-color:var(--text); }
+    .result-item-name { font-weight:600;font-size:14px; }
+    .result-item-sub { font-size:12px;color:var(--text-muted);margin-top:2px; }
+
+    /* PERFIL */
+    .theme-toggle-btn { width:44px;height:24px;border-radius:12px;border:none;cursor:pointer;position:relative;transition:background 0.3s;padding:0;flex-shrink:0; }
+    .theme-knob { width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:transform 0.3s;box-shadow:0 1px 3px rgba(0,0,0,0.3); }
   </style>
 </head>
 <body>
@@ -336,91 +251,60 @@
     <div class="sidebar-header">
       <div class="logo">
         <div class="logo-icon">
-          <svg fill="none" viewBox="0 0 18 18" stroke="#0f0f0f" stroke-width="2">
+          <svg fill="none" viewBox="0 0 18 18" stroke="#fff" stroke-width="2">
             <path d="M2 14 L7 9 L11 13 L16 6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
         <span class="logo-text">PRESALES AR</span>
       </div>
-      <button class="toggle-btn" id="toggleBtn" title="Contraer menú">
+      <button class="toggle-btn" id="toggleBtn">
         <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="2">
           <path d="M11 4L5 9l6 5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
     </div>
-
-    <nav class="nav" style="justify-content:flex-start">
-
-      <!-- PRINCIPAL -->
+    <nav class="nav">
       <div class="nav-section-title">Principal</div>
-      <button class="nav-item active" data-page="pages/home.html" data-tooltip="Inicio" onclick="navigate(this)">
-        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8">
-          <path d="M2 7.5L9 2l7 5.5V16H12v-4H6v4H2V7.5z" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+      <button class="nav-item active" data-page="home" data-tooltip="Inicio" onclick="navigate(this)">
+        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8"><path d="M2 7.5L9 2l7 5.5V16H12v-4H6v4H2V7.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="nav-label">Inicio</span>
       </button>
-
-      <!-- OPORTUNIDADES -->
       <div class="nav-section-title">Oportunidades</div>
-      <button class="nav-item" data-page="pages/nueva.html" data-tooltip="Nueva Oportunidad" onclick="navigate(this)">
-        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8">
-          <circle cx="9" cy="9" r="7"/>
-          <path d="M9 6v6M6 9h6" stroke-linecap="round"/>
-        </svg>
+      <button class="nav-item" data-page="nueva" data-tooltip="Nueva Oportunidad" onclick="navigate(this)">
+        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="9" r="7"/><path d="M9 6v6M6 9h6" stroke-linecap="round"/></svg>
         <span class="nav-label">Nueva Oportunidad</span>
       </button>
-      <button class="nav-item" data-page="pages/modificar.html" data-tooltip="Modificar" onclick="navigate(this)">
-        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8">
-          <path d="M12 2l4 4-9 9H3v-4L12 2z" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+      <button class="nav-item" data-page="modificar" data-tooltip="Modificar" onclick="navigate(this)">
+        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8"><path d="M12 2l4 4-9 9H3v-4L12 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="nav-label">Modificar Oportunidad</span>
       </button>
-      <button class="nav-item" data-page="pages/todas.html" data-tooltip="Ver Todas" onclick="navigate(this)">
-        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8">
-          <rect x="2" y="3" width="14" height="3" rx="1"/>
-          <rect x="2" y="8" width="14" height="3" rx="1"/>
-          <rect x="2" y="13" width="14" height="2" rx="1"/>
-        </svg>
+      <button class="nav-item" data-page="todas" data-tooltip="Ver Todas" onclick="navigate(this)">
+        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="14" height="3" rx="1"/><rect x="2" y="8" width="14" height="3" rx="1"/><rect x="2" y="13" width="14" height="2" rx="1"/></svg>
         <span class="nav-label">Ver Todas</span>
       </button>
-
-      <!-- ANALISIS -->
       <div class="nav-section-title">Análisis</div>
-      <button class="nav-item" data-page="pages/estadisticas.html" data-tooltip="Estadísticas" onclick="navigate(this)">
-        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8">
-          <path d="M2 16V10M6 16V6M10 16V8M14 16V2" stroke-linecap="round"/>
-        </svg>
+      <button class="nav-item" data-page="estadisticas" data-tooltip="Estadísticas" onclick="navigate(this)">
+        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8"><path d="M2 16V10M6 16V6M10 16V8M14 16V2" stroke-linecap="round"/></svg>
         <span class="nav-label">Estadísticas</span>
       </button>
-
       <div style="flex:1"></div>
       <div class="nav-divider"></div>
-      <!-- USUARIO -->
       <div class="nav-section-title">Usuario</div>
-      <button class="nav-item" data-page="pages/perfil.html" data-tooltip="Mi Perfil" onclick="navigate(this)">
-        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8">
-          <circle cx="9" cy="6" r="3.5"/>
-          <path d="M2 17c0-3.9 3.1-7 7-7s7 3.1 7 7" stroke-linecap="round"/>
-        </svg>
+      <button class="nav-item" data-page="perfil" data-tooltip="Mi Perfil" onclick="navigate(this)">
+        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="6" r="3.5"/><path d="M2 17c0-3.9 3.1-7 7-7s7 3.1 7 7" stroke-linecap="round"/></svg>
         <span class="nav-label">Mi Perfil</span>
       </button>
-      <button class="nav-item" data-page="pages/usuarios.html" data-tooltip="Usuarios" data-admin onclick="navigate(this)" style="display:none" id="btnUsuarios">
-        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8">
-          <circle cx="7" cy="6" r="3"/>
-          <path d="M1 16c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke-linecap="round"/>
-          <path d="M14 8v4M16 10h-4" stroke-linecap="round"/>
-        </svg>
+      <button class="nav-item" data-page="usuarios" data-tooltip="Usuarios" id="btnUsuarios" style="display:none" onclick="navigate(this)">
+        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="6" r="3"/><path d="M1 16c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke-linecap="round"/><path d="M14 8v4M16 10h-4" stroke-linecap="round"/></svg>
         <span class="nav-label">Usuarios</span>
       </button>
-
     </nav>
-
     <div class="sidebar-footer">
       <div class="version">PRESALES AR v1.0</div>
     </div>
   </aside>
 
-  <!-- MAIN CONTENT -->
+  <!-- MAIN -->
   <main class="main">
     <div class="topbar">
       <div class="topbar-breadcrumb">Oportunidades / <span id="pageTitle">Inicio</span></div>
@@ -429,108 +313,991 @@
         <span class="status-text" id="statusText">Verificando...</span>
         <div style="width:1px;height:20px;background:var(--border);margin:0 8px"></div>
         <div style="display:flex;align-items:center;gap:8px">
-          <div id="userAvatar" style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff"></div>
+          <div id="userAvatar" style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0"></div>
           <div>
-            <div id="userName" style="font-size:12px;font-weight:600;color:var(--text);line-height:1.2;transition:color 0.3s"></div>
+            <div id="userName" style="font-size:12px;font-weight:600;color:var(--text);line-height:1.2"></div>
             <div id="userPerfil" style="font-size:10px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.05em"></div>
           </div>
-          <button onclick="AUTH.logout()" title="Cerrar sesión" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;border-radius:6px;display:flex;align-items:center;transition:color 0.2s" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 18 18">
-              <path d="M7 3H3v12h4M12 12l3-3-3-3M15 9H7" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+          <button onclick="doLogout()" title="Cerrar sesión" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;border-radius:6px;display:flex;align-items:center;transition:color 0.2s" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 18 18"><path d="M7 3H3v12h4M12 12l3-3-3-3M15 9H7" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
       </div>
     </div>
-    <iframe class="content-frame" id="contentFrame" src="pages/home.html"></iframe>
-  </main>
 
+    <div class="page-content">
+
+      <!-- ══ HOME ══ -->
+      <div class="page-section active" id="page-home">
+        <div class="hero">
+          <div class="hero-eyebrow">Panel Principal</div>
+          <h1>Buenos días 👋</h1>
+          <p class="subtitle">Aquí tenés un resumen de tu pipeline comercial.</p>
+          <div class="hero-actions">
+            <button class="btn btn-accent" onclick="navigate(document.querySelector('[data-page=nueva]'))">+ Nueva Oportunidad</button>
+            <button class="btn" style="background:#1a1a1a;color:#fff" onclick="downloadExcelAction()">↓ Descargar Excel</button>
+          </div>
+        </div>
+        <div class="quick-stats" id="homeStats"></div>
+        <div class="two-col">
+          <div class="card" style="margin-bottom:16px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px">Pipeline por Estado</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">Distribución actual</div>
+            <div class="pipeline-bar" id="pipelineBar"></div>
+            <div class="etapa-legend" id="etapaLegend"></div>
+          </div>
+          <div class="card" style="margin-bottom:16px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px">Últimas 5 Oportunidades</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">Más recientes</div>
+            <div id="recientesContent"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ NUEVA ══ -->
+      <div class="page-section" id="page-nueva">
+        <h1>Nueva Oportunidad</h1>
+        <p class="subtitle">Completá los datos para registrar una nueva oportunidad comercial.</p>
+        <div id="nuevaAlert" class="alert"></div>
+        <div class="card">
+          <form id="nuevaForm" onsubmit="handleNueva(event)">
+            <div class="section-block">
+              <div class="section-title">Información General</div>
+              <div class="three-col" style="margin-bottom:18px">
+                <div class="form-group"><label>Cliente *</label><input type="text" id="n_cliente" required/></div>
+                <div class="form-group"><label>Industria</label><select id="n_industria"><option value="">— Seleccionar —</option><option>Agroindustria</option><option>Alimenticia</option><option>Automotriz</option><option>eCommerce</option><option>Energía</option><option>Industria/Tecnología</option><option>Medios</option><option>Oil&amp;Gas</option><option>Retail</option><option>Salud</option><option>Sector Público</option><option>Seguros</option><option>Servicios Financieros</option><option>Telecomunicaciones</option><option>Transporte y Logística</option></select></div>
+                <div class="form-group"><label>Práctica / Área *</label><select id="n_practica" required><option value="">— Seleccionar —</option><option>AM</option><option>CES</option><option>Consultoría</option><option>DWP</option><option>Enablon</option><option>HCI</option><option>IA</option><option>SAP</option><option>Testing</option></select></div>
+              </div>
+              <div class="form-group" style="margin-bottom:18px"><label>Nombre de la Oportunidad *</label><input type="text" id="n_nombre" required/></div>
+              <div class="form-group" style="margin-bottom:18px"><label>Descripción</label><textarea id="n_descripcion"></textarea></div>
+              <div class="form-group"><label>Origen *</label><select id="n_origen" required><option value="">— Seleccionar —</option><option>Fertilización</option><option>Otro</option><option>Proyecto</option><option>Renovación</option><option>RFP</option></select></div>
+            </div>
+            <div class="section-block">
+              <div class="section-title">BID</div>
+              <div class="two-col-form" style="margin-bottom:18px">
+                <div class="form-group"><label>Responsable *</label><input type="text" id="n_responsable" required/></div>
+                <div class="form-group"><label>Estado *</label><select id="n_estado" required><option value="">— Seleccionar —</option><option>En Desarrollo</option><option>Entregada</option><option>Finalizada</option></select></div>
+              </div>
+              <div class="two-col-form" style="margin-bottom:18px">
+                <div class="form-group"><label>Fecha de Inicio *</label><input type="date" id="n_fechaInicio" required/></div>
+                <div class="form-group"><label>Fecha de Entrega *</label><input type="date" id="n_fechaEntrega" required/></div>
+              </div>
+              <div class="form-group"><label>Notas</label><textarea id="n_notas"></textarea></div>
+            </div>
+            <div class="section-block">
+              <div class="section-title">Datos Comerciales</div>
+              <div class="three-col" style="margin-bottom:18px">
+                <div class="form-group"><label>TCV</label><input type="number" id="n_tcv" placeholder="0" min="0" oninput="calcFX('n')"/></div>
+                <div class="form-group"><label>Currency</label><select id="n_currency" onchange="fetchFX('n')"><option value="">— Seleccionar —</option><option>ARS</option><option>CLP</option><option>EUR</option><option>USD</option></select></div>
+                <div class="form-group"><label>% PM</label><input type="number" id="n_pm" placeholder="0" min="0" max="100" step="0.1"/></div>
+              </div>
+              <div class="two-col-form" style="margin-bottom:18px">
+                <div class="form-group">
+                  <label>TCV EUR <span id="n_fxBadge" class="fx-badge" style="display:none"></span></label>
+                  <div class="tcv-eur-display"><span id="n_tcvEurValue" class="fx-loading">Seleccioná moneda y TCV</span></div>
+                  <input type="hidden" id="n_tcvEur"/>
+                </div>
+                <div class="form-group"><label>Tipo de Cambio</label><input type="number" id="n_tipoCambio" placeholder="—" step="0.0001" oninput="calcFX('n')" readonly style="color:var(--text-muted)"/></div>
+              </div>
+              <div class="form-group" style="max-width:200px"><label>% Probabilidad</label><input type="number" id="n_probabilidad" placeholder="0" min="0" max="100" step="1"/></div>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end">
+              <button type="button" class="btn btn-ghost" onclick="resetNueva()">Limpiar</button>
+              <button type="submit" class="btn btn-primary" id="n_submitBtn">Guardar Oportunidad →</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ══ MODIFICAR ══ -->
+      <div class="page-section" id="page-modificar">
+        <h1>Modificar Oportunidad</h1>
+        <p class="subtitle">Buscá y editá una oportunidad existente.</p>
+        <div id="modAlert" class="alert"></div>
+        <div id="modSearch">
+          <div class="search-bar"><input type="text" id="modSearchInput" placeholder="Buscar por cliente, nombre o ID..." oninput="doModSearch()"/></div>
+          <div id="modLoadingSearch" class="loading" style="display:none"><div class="spinner"></div> Cargando...</div>
+          <div class="result-list" id="modResultList"></div>
+          <div id="modEmptySearch" class="empty" style="display:none"><div class="empty-icon">🔍</div><div class="empty-text">Sin resultados</div></div>
+        </div>
+        <div id="modEditForm" style="display:none">
+          <div class="page-actions">
+            <div>
+              <div style="font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.05em;text-transform:uppercase">Editando oportunidad</div>
+              <div style="font-size:18px;font-weight:700;margin-top:2px" id="modEditTitle">—</div>
+            </div>
+            <button class="btn btn-ghost" onclick="backToModSearch()">← Volver</button>
+          </div>
+          <div class="card">
+            <form id="modForm" onsubmit="handleUpdate(event)">
+              <input type="hidden" id="e_id"/>
+              <div class="section-block">
+                <div class="section-title">Información General</div>
+                <div class="three-col" style="margin-bottom:18px">
+                  <div class="form-group"><label>Cliente *</label><input type="text" id="e_cliente" required/></div>
+                  <div class="form-group"><label>Industria</label><select id="e_industria"><option value="">— Seleccionar —</option><option>Agroindustria</option><option>Alimenticia</option><option>Automotriz</option><option>eCommerce</option><option>Energía</option><option>Industria/Tecnología</option><option>Medios</option><option>Oil&amp;Gas</option><option>Retail</option><option>Salud</option><option>Sector Público</option><option>Seguros</option><option>Servicios Financieros</option><option>Telecomunicaciones</option><option>Transporte y Logística</option></select></div>
+                  <div class="form-group"><label>Práctica / Área *</label><select id="e_practica" required><option value="">— Seleccionar —</option><option>AM</option><option>CES</option><option>Consultoría</option><option>DWP</option><option>Enablon</option><option>HCI</option><option>IA</option><option>SAP</option><option>Testing</option></select></div>
+                </div>
+                <div class="form-group" style="margin-bottom:18px"><label>Nombre de la Oportunidad *</label><input type="text" id="e_nombre" required/></div>
+                <div class="form-group" style="margin-bottom:18px"><label>Descripción</label><textarea id="e_descripcion"></textarea></div>
+                <div class="form-group"><label>Origen *</label><select id="e_origen" required><option value="">— Seleccionar —</option><option>Fertilización</option><option>Otro</option><option>Proyecto</option><option>Renovación</option><option>RFP</option></select></div>
+              </div>
+              <div class="section-block">
+                <div class="section-title">BID</div>
+                <div class="two-col-form" style="margin-bottom:18px">
+                  <div class="form-group"><label>Responsable *</label><input type="text" id="e_responsable" required/></div>
+                  <div class="form-group"><label>Estado *</label><select id="e_estado" required><option value="">— Seleccionar —</option><option>En Desarrollo</option><option>Entregada</option><option>Finalizada</option></select></div>
+                </div>
+                <div class="two-col-form" style="margin-bottom:18px">
+                  <div class="form-group"><label>Fecha de Inicio *</label><input type="date" id="e_fechaInicio" required/></div>
+                  <div class="form-group"><label>Fecha de Entrega *</label><input type="date" id="e_fechaEntrega" required/></div>
+                </div>
+                <div class="form-group"><label>Notas</label><textarea id="e_notas"></textarea></div>
+              </div>
+              <div class="section-block">
+                <div class="section-title">Datos Comerciales</div>
+                <div class="three-col" style="margin-bottom:18px">
+                  <div class="form-group"><label>TCV</label><input type="number" id="e_tcv" placeholder="0" min="0" oninput="calcFX('e')"/></div>
+                  <div class="form-group"><label>Currency</label><select id="e_currency" onchange="fetchFX('e')"><option value="">— Seleccionar —</option><option>ARS</option><option>CLP</option><option>EUR</option><option>USD</option></select></div>
+                  <div class="form-group"><label>% PM</label><input type="number" id="e_pm" placeholder="0" min="0" max="100" step="0.1"/></div>
+                </div>
+                <div class="two-col-form" style="margin-bottom:18px">
+                  <div class="form-group">
+                    <label>TCV EUR <span id="e_fxBadge" class="fx-badge" style="display:none"></span></label>
+                    <div class="tcv-eur-display"><span id="e_tcvEurValue" class="fx-loading">—</span></div>
+                    <input type="hidden" id="e_tcvEur"/>
+                  </div>
+                  <div class="form-group"><label>Tipo de Cambio</label><input type="number" id="e_tipoCambio" placeholder="—" step="0.0001" oninput="calcFX('e')" readonly style="color:var(--text-muted)"/></div>
+                </div>
+                <div class="form-group" style="max-width:200px"><label>% Probabilidad</label><input type="number" id="e_probabilidad" placeholder="0" min="0" max="100" step="1"/></div>
+              </div>
+              <div style="display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap">
+                <button type="button" class="btn btn-danger" id="e_btnDelete" onclick="handleDelete()">🗑 Eliminar</button>
+                <div style="display:flex;gap:12px">
+                  <button type="button" class="btn btn-ghost" onclick="backToModSearch()">Cancelar</button>
+                  <button type="submit" class="btn btn-primary" id="e_submitBtn">Guardar Cambios →</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TODAS ══ -->
+      <div class="page-section" id="page-todas">
+        <div class="page-actions">
+          <div><h1>Todas las Oportunidades</h1><p class="subtitle" style="margin-bottom:0" id="todasCount">Cargando...</p></div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-ghost" onclick="downloadExcelAction()">↓ Exportar Excel</button>
+            <button class="btn btn-primary" onclick="navigate(document.querySelector('[data-page=nueva]'))">+ Nueva</button>
+          </div>
+        </div>
+        <div class="filters">
+          <input type="text" id="t_search" placeholder="Buscar..." oninput="renderTabla()"/>
+          <select id="t_estado" onchange="renderTabla()"><option value="">Todos los estados</option><option>En Desarrollo</option><option>Entregada</option><option>Finalizada</option></select>
+          <select id="t_practica" onchange="renderTabla()"><option value="">Todas las prácticas</option><option>AM</option><option>CES</option><option>Consultoría</option><option>DWP</option><option>Enablon</option><option>HCI</option><option>IA</option><option>SAP</option><option>Testing</option></select>
+          <select id="t_responsable" onchange="renderTabla()"><option value="">Todos los responsables</option></select>
+        </div>
+        <div class="card" style="padding:0">
+          <div id="todasLoading" class="loading" style="padding:40px 28px"><div class="spinner"></div> Cargando datos...</div>
+          <div id="todasTable" style="display:none">
+            <div class="table-wrap">
+              <table>
+                <thead><tr>
+                  <th class="sort-th" onclick="sortTabla('ID')">ID</th>
+                  <th class="sort-th" onclick="sortTabla('Cliente')">Cliente</th>
+                  <th class="sort-th" onclick="sortTabla('Nombre de la Oportunidad')">Nombre de la Oportunidad</th>
+                  <th class="sort-th" onclick="sortTabla('Responsable')">Responsable</th>
+                  <th class="sort-th" onclick="sortTabla('Estado')">Estado</th>
+                  <th class="col-action">Acción</th>
+                </tr></thead>
+                <tbody id="todasBody"></tbody>
+              </table>
+            </div>
+            <div id="todasEmpty" class="empty" style="display:none"><div class="empty-icon">📋</div><div class="empty-text">Sin oportunidades</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ ESTADÍSTICAS ══ -->
+      <div class="page-section" id="page-estadisticas">
+        <h1>Estadísticas</h1>
+        <p class="subtitle">Métricas y análisis de tu pipeline comercial.</p>
+        <div id="statsLoading" class="loading"><div class="spinner"></div> Cargando datos...</div>
+        <div id="statsContent" style="display:none">
+          <div class="kpi-row" id="statsKpis"></div>
+          <div class="charts-grid">
+            <div class="chart-card"><div class="chart-title">Distribución por Estado</div><div class="chart-sub">Cantidad de oportunidades</div><div class="chart-wrap"><canvas id="chartEstado"></canvas></div></div>
+            <div class="chart-card"><div class="chart-title">TCV EUR por Estado</div><div class="chart-sub">Sumatoria estimada en EUR</div><div class="chart-wrap"><canvas id="chartTCV"></canvas></div></div>
+            <div class="chart-card full"><div class="chart-title">Pipeline por Estado</div><div class="chart-sub">Cantidad de oportunidades por etapa</div><div id="funnelChart" style="padding-top:8px"></div></div>
+            <div class="chart-card"><div class="chart-title">Origen de Oportunidades</div><div class="chart-sub">¿De dónde vienen?</div><div class="chart-wrap"><canvas id="chartOrigen"></canvas></div></div>
+            <div class="chart-card"><div class="chart-title">Por Responsable</div><div class="chart-sub">Cantidad de oportunidades</div><div class="chart-wrap"><canvas id="chartResp"></canvas></div></div>
+            <div class="chart-card"><div class="chart-title">Por Práctica / Área</div><div class="chart-sub">Distribución de oportunidades</div><div class="chart-wrap"><canvas id="chartPractica"></canvas></div></div>
+            <div class="chart-card"><div class="chart-title">Por Industria</div><div class="chart-sub">Distribución de oportunidades</div><div class="chart-wrap"><canvas id="chartIndustria"></canvas></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PERFIL ══ -->
+      <div class="page-section" id="page-perfil">
+        <h1>Mi Perfil</h1>
+        <p class="subtitle">Información de tu cuenta y cambio de contraseña.</p>
+        <div id="perfilAlert" class="alert"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:800px">
+          <div class="card">
+            <div class="section-title">Información de Cuenta</div>
+            <div id="perfilInfo"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0 2px;font-size:13px;margin-top:4px">
+              <span style="color:var(--text-muted);font-weight:500">Tema de la interfaz</span>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span id="themeLabel" style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em"></span>
+                <button id="themeToggle" onclick="handleThemeToggle()" class="theme-toggle-btn">
+                  <div id="themeKnob" class="theme-knob"></div>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="section-title">Cambiar Contraseña</div>
+            <form onsubmit="handleChangePass(event)">
+              <div class="form-group" style="margin-bottom:14px"><label>Contraseña Actual</label><input type="password" id="p_oldPass" placeholder="••••••••" required/></div>
+              <div class="form-group" style="margin-bottom:14px"><label>Nueva Contraseña</label><input type="password" id="p_newPass" placeholder="••••••••" minlength="6" required/></div>
+              <div class="form-group" style="margin-bottom:20px"><label>Confirmar Nueva Contraseña</label><input type="password" id="p_confirmPass" placeholder="••••••••" required/></div>
+              <button type="submit" class="btn btn-primary" id="p_btnChange" style="width:100%">Cambiar Contraseña</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ USUARIOS ══ -->
+      <div class="page-section" id="page-usuarios">
+        <div class="page-actions">
+          <div><h1>Gestión de Usuarios</h1><p class="subtitle" style="margin-bottom:0">Administrá los usuarios de la plataforma.</p></div>
+          <button class="btn btn-primary" onclick="openUserModal('new')">+ Nuevo Usuario</button>
+        </div>
+        <div id="usuariosAlert" class="alert"></div>
+        <div class="card" style="padding:0">
+          <div id="usuariosLoading" class="loading" style="padding:40px 28px"><div class="spinner"></div> Cargando usuarios...</div>
+          <div id="usuariosTable" style="display:none">
+            <table>
+              <thead><tr><th>Nombre</th><th>Usuario</th><th>Email</th><th>Perfil</th><th>Estado</th><th style="text-align:center">Acciones</th></tr></thead>
+              <tbody id="usuariosBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end page-content -->
+  </main>
+</div><!-- end layout -->
+
+<!-- MODAL USUARIOS -->
+<div class="modal-overlay" id="userModalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="userModalTitle">Nuevo Usuario</div>
+    <div class="modal-sub" id="userModalSub">Completá los datos del nuevo usuario.</div>
+    <div id="userModalAlert" class="alert"></div>
+    <form onsubmit="handleUserModalSubmit(event)" id="userModalForm">
+      <input type="hidden" id="um_mode"/>
+      <input type="hidden" id="um_usuarioOriginal"/>
+      <div class="form-grid">
+        <div class="form-group"><label>Nombre *</label><input type="text" id="um_nombre" required/></div>
+        <div class="form-group"><label>Usuario *</label><input type="text" id="um_usuario" required/></div>
+        <div class="form-group full"><label>Email *</label><input type="email" id="um_email" required/></div>
+        <div class="form-group"><label>Perfil</label><select id="um_perfil"><option value="usuario">Usuario</option><option value="admin">Admin</option></select></div>
+        <div class="form-group"><label>Activo</label><select id="um_activo"><option value="SI">Sí</option><option value="NO">No</option></select></div>
+        <div class="form-group full" id="um_passGroup"><label>Contraseña *</label><input type="password" id="um_pass" placeholder="Mínimo 6 caracteres"/></div>
+        <div class="form-group full" id="um_passResetGroup" style="display:none"><label>Nueva Contraseña (vacío = sin cambios)</label><input type="password" id="um_passReset" placeholder="Dejar vacío para mantener"/></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+        <button type="button" class="btn btn-ghost" onclick="closeUserModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="um_btn">Crear Usuario</button>
+      </div>
+    </form>
+  </div>
 </div>
 
-<script src="assets/theme.js"></script>
+<!-- SCRIPTS -->
 <script>
-  // ── Auth check ──
-  const session = AUTH.getSession();
-  if (!session) { window.location.href = 'login.html'; }
+// ══════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════
+const USERS_API   = 'https://oportunidadesar.javier-sd-atos.workers.dev';
+const SESSION_KEY = 'presales_ar_session';
+const THEME_KEY_PREFIX = 'presales_ar_theme_';
 
-  // ── Inicializar variables del DOM ──
-  const sidebar   = document.getElementById('sidebar');
-  const toggleBtn = document.getElementById('toggleBtn');
-  const frame     = document.getElementById('contentFrame');
-  const pageTitle = document.getElementById('pageTitle');
-  const statusDot = document.getElementById('statusDot');
-  const statusText= document.getElementById('statusText');
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
 
-  // ── Mostrar info del usuario ──
-  if (session) {
-    const initials = session.nombre.split(' ').map(n=>n[0]).slice(0,2).join('');
-    document.getElementById('userAvatar').textContent = initials;
-    document.getElementById('userName').textContent = session.nombre.split(' ').slice(0,2).join(' ');
-    document.getElementById('userPerfil').textContent = session.perfil;
-    if (session.perfil === 'admin') {
-      const btnUsuarios = document.getElementById('btnUsuarios');
-      if (btnUsuarios) btnUsuarios.style.display = 'flex';
-    }
+async function authApiCall(params) {
+  const url = USERS_API + '?' + new URLSearchParams({ target: 'usuarios', ...params }).toString();
+  const res  = await fetch(url, { method: 'GET', redirect: 'follow' });
+  return JSON.parse(await res.text());
+}
+
+function getSession() {
+  try { return JSON.parse(sessionStorage.getItem(SESSION_KEY)); } catch { return null; }
+}
+
+function doLogout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  window.location.href = 'login.html';
+}
+
+// ══════════════════════════════════════════════
+// THEME
+// ══════════════════════════════════════════════
+function getThemeKey() {
+  const s = getSession();
+  return THEME_KEY_PREFIX + (s ? s.usuario : 'default');
+}
+function getSavedTheme() { return localStorage.getItem(getThemeKey()) || 'light'; }
+function applyTheme(theme) { document.body.classList.toggle('dark-mode', theme === 'dark'); }
+function saveTheme(theme) { localStorage.setItem(getThemeKey(), theme); applyTheme(theme); updateThemeUI(); }
+function handleThemeToggle() { saveTheme(getSavedTheme() === 'dark' ? 'light' : 'dark'); }
+function updateThemeUI() {
+  const isDark = getSavedTheme() === 'dark';
+  const toggle = document.getElementById('themeToggle');
+  const knob   = document.getElementById('themeKnob');
+  const label  = document.getElementById('themeLabel');
+  if (toggle) toggle.style.background = isDark ? 'var(--accent)' : '#ccc';
+  if (knob)   knob.style.transform    = isDark ? 'translateX(20px)' : 'translateX(0)';
+  if (label)  label.textContent       = isDark ? 'Oscuro' : 'Claro';
+}
+applyTheme(getSavedTheme());
+
+// ══════════════════════════════════════════════
+// CRM API
+// ══════════════════════════════════════════════
+const API_URL = 'https://oportunidadesar.javier-sd-atos.workers.dev';
+const COLUMNS = ['ID','Cliente','Industria','Práctica/Área','Nombre de la Oportunidad','Descripción','Origen','Responsable','Estado','Fecha de Inicio','Fecha de Entrega','Notas','TCV','Currency','TCV EUR','Tipo de Cambio','% Probabilidad','% PM','Fecha Creación'];
+const ESTADOS = ['En Desarrollo','Entregada','Finalizada'];
+const ESTADO_COLORS = {'En Desarrollo':'#93c5fd','Entregada':'#fde68a','Finalizada':'#86efac'};
+const PALETTE = ['#8a38fe','#0f0f0f','#93c5fd','#fde68a','#86efac','#fca5a5','#fdba74','#e9d5ff','#a7f3d0','#cbd5e1'];
+
+let _cache = null, _cacheTs = 0;
+const CACHE_TTL = 300000; // 5 minutos
+
+async function crmCall(params) {
+  const url = API_URL + '?' + new URLSearchParams({ target: 'oportunidades', ...params }).toString();
+  const res  = await fetch(url, { method: 'GET', redirect: 'follow' });
+  return JSON.parse(await res.text());
+}
+
+async function getData(forceRefresh = false) {
+  if (!forceRefresh && _cache && (Date.now() - _cacheTs) < CACHE_TTL) return _cache;
+  try {
+    const json = await crmCall({ action: 'get' });
+    if (json.ok) { _cache = json.data || []; _cacheTs = Date.now(); return _cache; }
+    throw new Error(json.error);
+  } catch(e) { console.error('getData error:', e); return _cache || []; }
+}
+
+async function addOportunidad(data) {
+  const json = await crmCall({ action: 'add', data: JSON.stringify(data) });
+  if (json.ok) { _cache = null; return json.id; }
+  throw new Error(json.error);
+}
+
+async function updateOportunidad(id, data) {
+  const json = await crmCall({ action: 'update', id, data: JSON.stringify(data) });
+  if (json.ok) { _cache = null; return true; }
+  throw new Error(json.error);
+}
+
+async function deleteOportunidad(id) {
+  const json = await crmCall({ action: 'delete', id });
+  if (json.ok) { _cache = null; return true; }
+  throw new Error(json.error);
+}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+const PAGE_TITLES = { home:'Inicio', nueva:'Nueva Oportunidad', modificar:'Modificar Oportunidad', todas:'Ver Todas', estadisticas:'Estadísticas', perfil:'Mi Perfil', usuarios:'Gestión de Usuarios' };
+let _chartsRendered = false;
+
+function navigate(btn) {
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  btn.classList.add('active');
+  const page = btn.dataset.page;
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('pageTitle').textContent = PAGE_TITLES[page] || page;
+  onPageEnter(page);
+}
+
+function onPageEnter(page) {
+  if (page === 'home')         renderHome();
+  if (page === 'todas')        initTabla();
+  if (page === 'estadisticas') renderStats();
+  if (page === 'modificar')    initModSearch();
+  if (page === 'perfil')       renderPerfil();
+  if (page === 'usuarios')     loadUsuarios();
+}
+
+// ══════════════════════════════════════════════
+// STATUS CHECK
+// ══════════════════════════════════════════════
+async function checkConexion() {
+  setStatus('sincronizando');
+  try {
+    const res  = await fetch(`${API_URL}?target=oportunidades&action=get`, { method:'GET', redirect:'follow' });
+    const text = await res.text();
+    setStatus(text.includes('"ok"') ? 'conectado' : 'error');
+  } catch(e) { setStatus('error'); }
+}
+
+function setStatus(state) {
+  document.getElementById('statusDot').className  = 'status-dot ' + state;
+  document.getElementById('statusText').textContent = { sincronizando:'Sincronizando...', conectado:'Conectado', error:'Sin conexión' }[state] || '';
+}
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+function fmtEUR(n) { return '€' + Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function badgeEstado(e) { return {'En Desarrollo':'badge-propuesta','Entregada':'badge-calificación','Finalizada':'badge-ganado'}[e]||''; }
+function showAlert(id, msg, type) {
+  const box = document.getElementById(id);
+  box.textContent = msg; box.className = `alert alert-${type} show`;
+  setTimeout(() => box.className = 'alert', 5000);
+}
+
+// ══════════════════════════════════════════════
+// HOME
+// ══════════════════════════════════════════════
+async function renderHome() {
+  const rows = await getData();
+  const totalTCV = rows.reduce((s,r) => s+(parseFloat(r['TCV EUR'])||0), 0);
+  const enDes    = rows.filter(r => r['Estado']==='En Desarrollo').length;
+  const fin      = rows.filter(r => r['Estado']==='Finalizada').length;
+  const ent      = rows.filter(r => r['Estado']==='Entregada').length;
+  const winRate  = (fin+ent)>0 ? Math.round(fin/(fin+ent)*100) : 0;
+
+  document.getElementById('homeStats').innerHTML = [
+    {v:rows.length, l:'Total Opor.'}, {v:enDes, l:'En Desarrollo'},
+    {v:fmtEUR(totalTCV), l:'TCV EUR Total'}, {v:winRate+'%', l:'Win Rate'}
+  ].map(s=>`<div class="qs-card"><div class="qs-value">${s.v}</div><div class="qs-label">${s.l}</div></div>`).join('');
+
+  const counts = {}; ESTADOS.forEach(e => counts[e]=0);
+  rows.forEach(r => { if(counts[r['Estado']]!==undefined) counts[r['Estado']]++; });
+  document.getElementById('pipelineBar').innerHTML = ESTADOS.map(e=>`<div class="pipeline-segment" style="flex:${counts[e]||0.1};background:${ESTADO_COLORS[e]}"></div>`).join('');
+  document.getElementById('etapaLegend').innerHTML = ESTADOS.map(e=>`<div class="etapa-item"><div class="etapa-dot" style="background:${ESTADO_COLORS[e]}"></div>${e} (${counts[e]})</div>`).join('');
+
+  const recientes = [...rows].reverse().slice(0,5);
+  document.getElementById('recientesContent').innerHTML = recientes.length===0
+    ? '<div class="empty"><div class="empty-text">Sin oportunidades aún</div></div>'
+    : `<table><thead><tr><th>Nombre</th><th>Cliente</th><th>Estado</th></tr></thead><tbody>${recientes.map(r=>`<tr><td>${r['Nombre de la Oportunidad']||'—'}</td><td style="color:var(--text-muted)">${r['Cliente']||'—'}</td><td><span class="badge ${badgeEstado(r['Estado'])}">${r['Estado']||'—'}</span></td></tr>`).join('')}</tbody></table>`;
+}
+
+// ══════════════════════════════════════════════
+// FX
+// ══════════════════════════════════════════════
+const _fxRates = {};
+async function fetchFX(prefix) {
+  const currency = document.getElementById(`${prefix}_currency`).value;
+  if (!currency || currency==='EUR') {
+    _fxRates[prefix] = currency==='EUR' ? 1 : null;
+    document.getElementById(`${prefix}_tipoCambio`).value = currency==='EUR' ? 1 : '';
+    document.getElementById(`${prefix}_fxBadge`).style.display = 'none';
+    calcFX(prefix); return;
   }
+  document.getElementById(`${prefix}_tcvEurValue`).className = 'fx-loading';
+  document.getElementById(`${prefix}_tcvEurValue`).textContent = 'Obteniendo tipo de cambio...';
+  document.getElementById(`${prefix}_fxBadge`).style.display = 'none';
+  try {
+    const res  = await fetch(`https://api.exchangerate-api.com/v4/latest/${currency}`);
+    const data = await res.json();
+    _fxRates[prefix] = data.rates['EUR'];
+    document.getElementById(`${prefix}_tipoCambio`).value = _fxRates[prefix].toFixed(6);
+    const badge = document.getElementById(`${prefix}_fxBadge`);
+    badge.style.display = 'inline-flex';
+    badge.textContent = `1 ${currency} = ${_fxRates[prefix].toFixed(4)} EUR`;
+    calcFX(prefix);
+  } catch(e) { document.getElementById(`${prefix}_tcvEurValue`).textContent = 'Error al obtener tipo de cambio'; }
+}
 
-  // ── Navegación ──
-  const pageTitles = {
-    'pages/home.html':        'Inicio',
-    'pages/nueva.html':       'Nueva Oportunidad',
-    'pages/modificar.html':   'Modificar Oportunidad',
-    'pages/todas.html':       'Ver Todas',
-    'pages/estadisticas.html':'Estadísticas',
-    'pages/usuarios.html':    'Gestión de Usuarios',
-    'pages/perfil.html':      'Mi Perfil',
-  };
+function calcFX(prefix) {
+  const tcv      = parseFloat(document.getElementById(`${prefix}_tcv`).value) || 0;
+  const fx       = parseFloat(document.getElementById(`${prefix}_tipoCambio`).value) || _fxRates[prefix];
+  const currency = document.getElementById(`${prefix}_currency`).value;
+  const display  = document.getElementById(`${prefix}_tcvEurValue`);
+  if (!currency) { display.className='fx-loading'; display.textContent='Seleccioná moneda y TCV'; document.getElementById(`${prefix}_tcvEur`).value=''; return; }
+  if (!fx)       { display.className='fx-loading'; display.textContent='Obteniendo tipo de cambio...'; return; }
+  if (!tcv)      { display.className='fx-loading'; display.textContent='Ingresá el TCV'; document.getElementById(`${prefix}_tcvEur`).value=''; return; }
+  const eur = tcv * fx;
+  display.className=''; display.style.color='var(--text)';
+  display.textContent = '€ ' + eur.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById(`${prefix}_tcvEur`).value = eur.toFixed(2);
+}
 
-  toggleBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+// ══════════════════════════════════════════════
+// NUEVA
+// ══════════════════════════════════════════════
+async function handleNueva(e) {
+  e.preventDefault();
+  const btn = document.getElementById('n_submitBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spinner-inline"></span>Guardando...';
+  try {
+    const id = await addOportunidad({
+      'Cliente':                  document.getElementById('n_cliente').value,
+      'Industria':                document.getElementById('n_industria').value,
+      'Práctica/Área':            document.getElementById('n_practica').value,
+      'Nombre de la Oportunidad': document.getElementById('n_nombre').value,
+      'Descripción':              document.getElementById('n_descripcion').value,
+      'Origen':                   document.getElementById('n_origen').value,
+      'Responsable':              document.getElementById('n_responsable').value,
+      'Estado':                   document.getElementById('n_estado').value,
+      'Fecha de Inicio':          document.getElementById('n_fechaInicio').value,
+      'Fecha de Entrega':         document.getElementById('n_fechaEntrega').value,
+      'Notas':                    document.getElementById('n_notas').value,
+      'TCV':                      document.getElementById('n_tcv').value||'0',
+      'Currency':                 document.getElementById('n_currency').value,
+      'TCV EUR':                  document.getElementById('n_tcvEur').value||'0',
+      'Tipo de Cambio':           document.getElementById('n_tipoCambio').value||'',
+      '% Probabilidad':           document.getElementById('n_probabilidad').value||'',
+      '% PM':                     document.getElementById('n_pm').value||'',
+    });
+    showAlert('nuevaAlert', `✓ Oportunidad #${id} guardada exitosamente.`, 'success');
+    resetNueva();
+  } catch(err) { showAlert('nuevaAlert', '✗ Error al guardar. Intentá de nuevo.', 'error'); }
+  finally { btn.disabled=false; btn.innerHTML='Guardar Oportunidad →'; }
+}
 
-  function navigate(btn) {
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    btn.classList.add('active');
-    const page = btn.dataset.page;
-    frame.src = page;
-    pageTitle.textContent = pageTitles[page] || page;
+function resetNueva() {
+  document.getElementById('nuevaForm').reset();
+  const s = getSession();
+  if (s) document.getElementById('n_responsable').value = s.nombre;
+  _fxRates['n'] = null;
+  document.getElementById('n_tcvEurValue').className='fx-loading';
+  document.getElementById('n_tcvEurValue').textContent='Seleccioná moneda y TCV';
+  document.getElementById('n_fxBadge').style.display='none';
+  document.getElementById('n_tcvEur').value='';
+}
+
+// ══════════════════════════════════════════════
+// MODIFICAR
+// ══════════════════════════════════════════════
+let _modRows = [];
+
+async function initModSearch() {
+  document.getElementById('modSearch').style.display='block';
+  document.getElementById('modEditForm').style.display='none';
+  document.getElementById('modLoadingSearch').style.display='flex';
+  _modRows = await getData(true);
+  document.getElementById('modLoadingSearch').style.display='none';
+  doModSearch();
+}
+
+function doModSearch() {
+  const q = document.getElementById('modSearchInput').value.trim().toLowerCase();
+  const session = getSession();
+  let rows = _modRows;
+  if (session && session.perfil !== 'admin') rows = rows.filter(r => r['Responsable']===session.nombre);
+  const filtered = q ? rows.filter(r => (r['Cliente']||'').toLowerCase().includes(q)||(r['Nombre de la Oportunidad']||'').toLowerCase().includes(q)||(r['ID']||'').toLowerCase().includes(q)) : rows.slice(-20).reverse();
+  const list  = document.getElementById('modResultList');
+  const empty = document.getElementById('modEmptySearch');
+  if (filtered.length===0) { list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  list.innerHTML = filtered.slice(0,20).map(r=>`
+    <div class="result-item" onclick="loadModItem('${r['ID']}')">
+      <div><div class="result-item-name">${r['Nombre de la Oportunidad']||'—'}</div><div class="result-item-sub">${r['Cliente']||'—'} · ID #${r['ID']}</div></div>
+      <span class="badge ${badgeEstado(r['Estado'])}">${r['Estado']||'—'}</span>
+    </div>`).join('');
+}
+
+function loadModItem(id) {
+  const r = _modRows.find(x => x['ID']===id);
+  if (!r) return;
+  const session = getSession();
+  if (session && session.perfil !== 'admin' && r['Responsable'] !== session.nombre) { alert('Solo podés editar oportunidades que te pertenecen.'); return; }
+  document.getElementById('e_id').value           = id;
+  document.getElementById('modEditTitle').textContent = r['Nombre de la Oportunidad'];
+  document.getElementById('e_cliente').value      = r['Cliente']||'';
+  document.getElementById('e_industria').value    = r['Industria']||'';
+  document.getElementById('e_practica').value     = r['Práctica/Área']||'';
+  document.getElementById('e_nombre').value       = r['Nombre de la Oportunidad']||'';
+  document.getElementById('e_descripcion').value  = r['Descripción']||'';
+  document.getElementById('e_origen').value       = r['Origen']||'';
+  document.getElementById('e_responsable').value  = r['Responsable']||'';
+  document.getElementById('e_estado').value       = r['Estado']||'';
+  document.getElementById('e_fechaInicio').value  = r['Fecha de Inicio']||'';
+  document.getElementById('e_fechaEntrega').value = r['Fecha de Entrega']||'';
+  document.getElementById('e_notas').value        = r['Notas']||'';
+  document.getElementById('e_tcv').value          = r['TCV']||'';
+  document.getElementById('e_currency').value     = r['Currency']||'';
+  document.getElementById('e_pm').value           = r['% PM']||'';
+  document.getElementById('e_tipoCambio').value   = r['Tipo de Cambio']||'';
+  document.getElementById('e_tcvEur').value       = r['TCV EUR']||'';
+  document.getElementById('e_probabilidad').value = r['% Probabilidad']||'';
+  _fxRates['e'] = parseFloat(r['Tipo de Cambio']) || null;
+  const eur = parseFloat(r['TCV EUR']);
+  const tv  = document.getElementById('e_tcvEurValue');
+  if (eur) { tv.className=''; tv.textContent='€ '+eur.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  else { tv.className='fx-loading'; tv.textContent='—'; }
+  if (r['Tipo de Cambio'] && r['Currency']) {
+    const badge = document.getElementById('e_fxBadge');
+    badge.style.display='inline-flex';
+    badge.textContent=`1 ${r['Currency']} = ${parseFloat(r['Tipo de Cambio']).toFixed(4)} EUR`;
   }
+  document.getElementById('e_btnDelete').style.display = session && session.perfil==='admin' ? '' : 'none';
+  if (session && session.perfil !== 'admin') document.getElementById('e_responsable').readOnly = true;
+  document.getElementById('modSearch').style.display='none';
+  document.getElementById('modEditForm').style.display='block';
+  window.scrollTo(0,0);
+}
 
-  window.navigateTo = function(page) {
-    const btn = document.querySelector(`.nav-item[data-page="${page}"]`);
-    if (btn) navigate(btn);
-  };
+function backToModSearch() {
+  document.getElementById('modSearch').style.display='block';
+  document.getElementById('modEditForm').style.display='none';
+  _fxRates['e'] = null;
+}
 
-  // ── Propagar tema al iframe al cargar ──
-  frame.addEventListener('load', () => {
-    try {
-      const isDark = THEME.getSavedTheme() === 'dark';
-      frame.contentWindow.document.body.classList.toggle('dark-mode', isDark);
-    } catch(e) {}
+async function handleUpdate(e) {
+  e.preventDefault();
+  const id  = document.getElementById('e_id').value;
+  const btn = document.getElementById('e_submitBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spinner-inline"></span>Guardando...';
+  try {
+    await updateOportunidad(id, {
+      'Cliente':                  document.getElementById('e_cliente').value,
+      'Industria':                document.getElementById('e_industria').value,
+      'Práctica/Área':            document.getElementById('e_practica').value,
+      'Nombre de la Oportunidad': document.getElementById('e_nombre').value,
+      'Descripción':              document.getElementById('e_descripcion').value,
+      'Origen':                   document.getElementById('e_origen').value,
+      'Responsable':              document.getElementById('e_responsable').value,
+      'Estado':                   document.getElementById('e_estado').value,
+      'Fecha de Inicio':          document.getElementById('e_fechaInicio').value,
+      'Fecha de Entrega':         document.getElementById('e_fechaEntrega').value,
+      'Notas':                    document.getElementById('e_notas').value,
+      'TCV':                      document.getElementById('e_tcv').value||'0',
+      'Currency':                 document.getElementById('e_currency').value,
+      'TCV EUR':                  document.getElementById('e_tcvEur').value||'0',
+      'Tipo de Cambio':           document.getElementById('e_tipoCambio').value||'',
+      '% Probabilidad':           document.getElementById('e_probabilidad').value||'',
+      '% PM':                     document.getElementById('e_pm').value||'',
+    });
+    showAlert('modAlert','✓ Oportunidad actualizada correctamente.','success');
+    backToModSearch();
+  } catch(err) { showAlert('modAlert','✗ Error al actualizar. Intentá de nuevo.','error'); }
+  finally { btn.disabled=false; btn.innerHTML='Guardar Cambios →'; }
+}
+
+async function handleDelete() {
+  const id   = document.getElementById('e_id').value;
+  const name = document.getElementById('modEditTitle').textContent;
+  if (!confirm(`¿Seguro que querés eliminar "${name}"?`)) return;
+  try {
+    await deleteOportunidad(id);
+    showAlert('modAlert','Oportunidad eliminada.','success');
+    backToModSearch();
+  } catch(err) { showAlert('modAlert','✗ Error al eliminar.','error'); }
+}
+
+// ══════════════════════════════════════════════
+// TODAS
+// ══════════════════════════════════════════════
+let _tablaRows=[], _sortKey='ID', _sortDir=-1;
+
+async function initTabla() {
+  document.getElementById('todasLoading').style.display='flex';
+  document.getElementById('todasTable').style.display='none';
+  const session = getSession();
+  const raw = await getData(true);
+  _tablaRows = session && session.perfil==='admin' ? raw : raw.filter(r => r['Responsable']===session.nombre);
+  document.getElementById('todasLoading').style.display='none';
+  document.getElementById('todasTable').style.display='block';
+  // Populate responsables
+  const resps = [...new Set(_tablaRows.map(r=>r['Responsable']).filter(Boolean))].sort();
+  const sel = document.getElementById('t_responsable');
+  sel.innerHTML='<option value="">Todos los responsables</option>';
+  resps.forEach(r => sel.innerHTML += `<option>${r}</option>`);
+  renderTabla();
+}
+
+function sortTabla(key) {
+  if (_sortKey===key) _sortDir*=-1; else { _sortKey=key; _sortDir=1; }
+  renderTabla();
+}
+
+function renderTabla() {
+  const q    = document.getElementById('t_search').value.trim().toLowerCase();
+  const est  = document.getElementById('t_estado').value;
+  const prac = document.getElementById('t_practica').value;
+  const resp = document.getElementById('t_responsable').value;
+  const rows = _tablaRows.filter(r => {
+    if (est  && r['Estado']!==est) return false;
+    if (prac && r['Práctica/Área']!==prac) return false;
+    if (resp && r['Responsable']!==resp) return false;
+    if (q) { const h=[r['ID'],r['Cliente'],r['Nombre de la Oportunidad'],r['Responsable']].join(' ').toLowerCase(); if(!h.includes(q)) return false; }
+    return true;
+  }).sort((a,b) => {
+    let av=a[_sortKey]||'', bv=b[_sortKey]||'';
+    if(!isNaN(parseFloat(av))&&!isNaN(parseFloat(bv))) return (parseFloat(av)-parseFloat(bv))*_sortDir;
+    return String(av).localeCompare(String(bv))*_sortDir;
   });
+  document.getElementById('todasCount').textContent = `${rows.length} oportunidad${rows.length!==1?'es':''}`;
+  const body  = document.getElementById('todasBody');
+  const empty = document.getElementById('todasEmpty');
+  if (rows.length===0) { body.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  body.innerHTML = rows.map(r=>`
+    <tr>
+      <td class="col-id">#${r['ID']}</td>
+      <td style="font-weight:600">${r['Cliente']||'—'}</td>
+      <td style="max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r['Nombre de la Oportunidad']||'—'}</td>
+      <td style="color:var(--text-muted)">${r['Responsable']||'—'}</td>
+      <td><span class="badge ${badgeEstado(r['Estado'])}">${r['Estado']||'—'}</span></td>
+      <td class="col-action"><button class="btn-sm" onclick="editFromTabla('${r['ID']}')">Editar</button></td>
+    </tr>`).join('');
+}
 
-  // ── Estado de conexión dinámico ──
-  function setStatus(state) {
-    statusDot.className = 'status-dot ' + state;
-    statusText.textContent = { sincronizando:'Sincronizando...', conectado:'Conectado', error:'Sin conexión' }[state] || '';
+function editFromTabla(id) {
+  navigate(document.querySelector('[data-page="modificar"]'));
+  setTimeout(() => loadModItem(id), 100);
+}
+
+async function downloadExcelAction() {
+  const rows = await getData();
+  if (typeof XLSX==='undefined') return;
+  const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [Object.fromEntries(COLUMNS.map(c=>[c,''']))]);
+  ws['!cols'] = [6,25,18,14,30,20,14,18,14,14,14,20,12,10,12,14,14,10,14].map(w=>({wch:w}));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Oportunidades');
+  const estadoCounts={};
+  ESTADOS.forEach(e=>estadoCounts[e]=0);
+  rows.forEach(r=>{if(estadoCounts[r['Estado']]!==undefined)estadoCounts[r['Estado']]++;});
+  const ws2 = XLSX.utils.aoa_to_sheet([
+    ['RESUMEN PIPELINE',''],['Generado',new Date().toLocaleString('es-AR')],['',''],
+    ['Total Oportunidades',rows.length],
+    ['TCV EUR Total',rows.reduce((s,r)=>s+(parseFloat(r['TCV EUR'])||0),0)],
+    ['',''],['ESTADO','CANTIDAD'],...ESTADOS.map(e=>[e,estadoCounts[e]||0])
+  ]);
+  ws2['!cols']=[{wch:30},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Resumen');
+  const wbout = XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([wbout],{type:'application/octet-stream'}));
+  a.download='oportunidades.xlsx'; a.click();
+}
+
+// ══════════════════════════════════════════════
+// ESTADÍSTICAS
+// ══════════════════════════════════════════════
+let _statsCharts = {};
+
+async function renderStats() {
+  document.getElementById('statsLoading').style.display='flex';
+  document.getElementById('statsContent').style.display='none';
+  Object.values(_statsCharts).forEach(c => { try { c.destroy(); } catch(e){} });
+  _statsCharts = {};
+  const rows = await getData(true);
+  document.getElementById('statsLoading').style.display='none';
+  document.getElementById('statsContent').style.display='block';
+
+  const totalTCV  = rows.reduce((s,r)=>s+(parseFloat(r['TCV EUR'])||0),0);
+  const probProm  = rows.length>0 ? Math.round(rows.reduce((s,r)=>s+(parseFloat(r['% Probabilidad'])||0),0)/rows.length) : 0;
+  const enDes     = rows.filter(r=>r['Estado']==='En Desarrollo').length;
+
+  document.getElementById('statsKpis').innerHTML = [
+    {v:rows.length,l:'Total Oportunidades'},{v:fmtEUR(totalTCV),l:'TCV EUR Total'},
+    {v:enDes,l:'En Desarrollo'},{v:probProm+'%',l:'Prob. Promedio'}
+  ].map(k=>`<div class="kpi"><div class="kpi-val">${k.v}</div><div class="kpi-lbl">${k.l}</div></div>`).join('');
+
+  const estadoCounts={}, estadoTCV={};
+  ESTADOS.forEach(e=>{estadoCounts[e]=0;estadoTCV[e]=0;});
+  rows.forEach(r=>{if(estadoCounts[r['Estado']]!==undefined){estadoCounts[r['Estado']]++;estadoTCV[r['Estado']]+=parseFloat(r['TCV EUR'])||0;}});
+
+  Chart.defaults.font.family="'Montserrat', sans-serif"; Chart.defaults.font.size=11; Chart.defaults.color='#888';
+
+  _statsCharts.estado = new Chart(document.getElementById('chartEstado'),{type:'doughnut',data:{labels:ESTADOS,datasets:[{data:ESTADOS.map(e=>estadoCounts[e]),backgroundColor:ESTADOS.map(e=>ESTADO_COLORS[e]),borderWidth:0}]},options:{plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:14}}},cutout:'65%',maintainAspectRatio:false}});
+  _statsCharts.tcv    = new Chart(document.getElementById('chartTCV'),{type:'bar',data:{labels:ESTADOS,datasets:[{data:ESTADOS.map(e=>estadoTCV[e]),backgroundColor:ESTADOS.map(e=>ESTADO_COLORS[e]),borderRadius:6,borderSkipped:false}]},options:{plugins:{legend:{display:false}},scales:{y:{grid:{color:'#f0ede6'},ticks:{callback:v=>'€'+(v>=1000?(v/1000).toFixed(0)+'k':v)}},x:{grid:{display:false}}},maintainAspectRatio:false}});
+
+  const maxCount=Math.max(...ESTADOS.map(e=>estadoCounts[e]||0),1);
+  document.getElementById('funnelChart').innerHTML=ESTADOS.map(e=>`<div class="funnel-row"><div class="funnel-label">${e}</div><div class="funnel-track"><div class="funnel-fill" style="width:${Math.round((estadoCounts[e]||0)/maxCount*100)}%;background:${ESTADO_COLORS[e]}"></div></div><div class="funnel-count">${estadoCounts[e]||0}</div></div>`).join('');
+
+  const origenC={};rows.forEach(r=>{if(r['Origen'])origenC[r['Origen']]=(origenC[r['Origen']]||0)+1;});
+  const origenK=Object.keys(origenC);
+  _statsCharts.origen=new Chart(document.getElementById('chartOrigen'),{type:'pie',data:{labels:origenK.length?origenK:['Sin datos'],datasets:[{data:origenK.length?origenK.map(k=>origenC[k]):[1],backgroundColor:PALETTE,borderWidth:0}]},options:{plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:12}}},maintainAspectRatio:false}});
+
+  const respC={};rows.forEach(r=>{if(r['Responsable'])respC[r['Responsable']]=(respC[r['Responsable']]||0)+1;});
+  const respK=Object.keys(respC).sort((a,b)=>respC[b]-respC[a]).slice(0,8);
+  _statsCharts.resp=new Chart(document.getElementById('chartResp'),{type:'bar',data:{labels:respK.length?respK:['Sin datos'],datasets:[{data:respK.length?respK.map(k=>respC[k]):[0],backgroundColor:'#0f0f0f',borderRadius:6,borderSkipped:false}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#f0ede6'},ticks:{stepSize:1}},y:{grid:{display:false}}},maintainAspectRatio:false}});
+
+  const pracC={};rows.forEach(r=>{if(r['Práctica/Área'])pracC[r['Práctica/Área']]=(pracC[r['Práctica/Área']]||0)+1;});
+  const pracK=Object.keys(pracC).sort((a,b)=>pracC[b]-pracC[a]);
+  _statsCharts.prac=new Chart(document.getElementById('chartPractica'),{type:'bar',data:{labels:pracK.length?pracK:['Sin datos'],datasets:[{data:pracK.length?pracK.map(k=>pracC[k]):[0],backgroundColor:PALETTE,borderRadius:6,borderSkipped:false}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#f0ede6'},ticks:{stepSize:1}},y:{grid:{display:false}}},maintainAspectRatio:false}});
+
+  const indC={};rows.forEach(r=>{if(r['Industria'])indC[r['Industria']]=(indC[r['Industria']]||0)+1;});
+  const indK=Object.keys(indC).sort((a,b)=>indC[b]-indC[a]);
+  _statsCharts.ind=new Chart(document.getElementById('chartIndustria'),{type:'pie',data:{labels:indK.length?indK:['Sin datos'],datasets:[{data:indK.length?indK.map(k=>indC[k]):[1],backgroundColor:PALETTE,borderWidth:0}]},options:{plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:12}}},maintainAspectRatio:false}});
+}
+
+// ══════════════════════════════════════════════
+// PERFIL
+// ══════════════════════════════════════════════
+function renderPerfil() {
+  const s = getSession(); if (!s) return;
+  const perfBadge = s.perfil==='admin' ? 'badge-ganado' : 'badge-propuesta';
+  document.getElementById('perfilInfo').innerHTML =
+    `<div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
+      <div style="width:56px;height:56px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0">${s.nombre.split(' ').map(n=>n[0]).slice(0,2).join('')}</div>
+      <div><div style="font-size:16px;font-weight:700">${s.nombre}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${s.email}</div></div>
+    </div>
+    ${infoRow('Usuario', s.usuario)}
+    ${infoRow('Perfil', `<span class="badge ${perfBadge}">${s.perfil}</span>`)}
+    ${infoRow('Estado', '<span class="badge badge-activa">Activo</span>')}`;
+  updateThemeUI();
+}
+
+function infoRow(label, value) {
+  return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text-muted);font-weight:500">${label}</span><span style="font-weight:600">${value}</span></div>`;
+}
+
+async function handleChangePass(e) {
+  e.preventDefault();
+  const s = getSession(); if (!s) return;
+  const oldPass     = document.getElementById('p_oldPass').value;
+  const newPass     = document.getElementById('p_newPass').value;
+  const confirmPass = document.getElementById('p_confirmPass').value;
+  const btn         = document.getElementById('p_btnChange');
+  if (newPass !== confirmPass) { showAlert('perfilAlert','Las contraseñas nuevas no coinciden.','error'); return; }
+  if (newPass.length < 6)     { showAlert('perfilAlert','La contraseña debe tener al menos 6 caracteres.','error'); return; }
+  btn.disabled=true; btn.textContent='Guardando...';
+  try {
+    const oldHash = await sha256(oldPass);
+    const newHash = await sha256(newPass);
+    const users   = await authApiCall({ action: 'get' });
+    if (!users.ok) throw new Error(users.error);
+    const user = users.data.find(u => u['Usuario'].toLowerCase()===s.usuario.toLowerCase() && u['Contraseña']===oldHash);
+    if (!user) { showAlert('perfilAlert','Contraseña actual incorrecta.','error'); return; }
+    const result = await authApiCall({ action:'update', usuario:s.usuario, data:JSON.stringify({'Contraseña':newHash}) });
+    if (result.ok) { showAlert('perfilAlert','✓ Contraseña actualizada correctamente.','success'); e.target.reset(); }
+    else showAlert('perfilAlert','✗ Error al actualizar contraseña.','error');
+  } catch(err) { showAlert('perfilAlert','✗ Error de conexión.','error'); }
+  finally { btn.disabled=false; btn.textContent='Cambiar Contraseña'; }
+}
+
+// ══════════════════════════════════════════════
+// USUARIOS
+// ══════════════════════════════════════════════
+let _allUsers = [];
+
+async function loadUsuarios() {
+  document.getElementById('usuariosLoading').style.display='flex';
+  document.getElementById('usuariosTable').style.display='none';
+  const json = await authApiCall({ action:'get' });
+  _allUsers = json.ok ? json.data : [];
+  document.getElementById('usuariosLoading').style.display='none';
+  document.getElementById('usuariosTable').style.display='block';
+  document.getElementById('usuariosBody').innerHTML = _allUsers.map(u=>`
+    <tr>
+      <td style="font-weight:600">${u['Nombre']}</td>
+      <td style="color:var(--text-muted)">${u['Usuario']}</td>
+      <td style="color:var(--text-muted);font-size:12px">${u['Email']}</td>
+      <td><span class="badge ${u['Perfil']==='admin'?'badge-ganado':'badge-propuesta'}">${u['Perfil']}</span></td>
+      <td><span class="badge ${u['Activo']==='SI'?'badge-activa':'badge-cerrada'}">${u['Activo']==='SI'?'Activo':'Inactivo'}</span></td>
+      <td style="text-align:center"><button class="btn-sm" onclick="openUserModal('edit','${u['Usuario']}')">Editar</button></td>
+    </tr>`).join('');
+}
+
+function openUserModal(mode, usuario) {
+  document.getElementById('um_mode').value=mode;
+  document.getElementById('userModalAlert').className='alert';
+  document.getElementById('userModalForm').reset();
+  if (mode==='new') {
+    document.getElementById('userModalTitle').textContent='Nuevo Usuario';
+    document.getElementById('userModalSub').textContent='Completá los datos del nuevo usuario.';
+    document.getElementById('um_btn').textContent='Crear Usuario';
+    document.getElementById('um_usuario').disabled=false;
+    document.getElementById('um_passGroup').style.display='block';
+    document.getElementById('um_passResetGroup').style.display='none';
+    document.getElementById('um_pass').required=true;
+  } else {
+    const u = _allUsers.find(x=>x['Usuario']===usuario); if (!u) return;
+    document.getElementById('userModalTitle').textContent='Editar Usuario';
+    document.getElementById('userModalSub').textContent=`Modificando: ${u['Nombre']}`;
+    document.getElementById('um_btn').textContent='Guardar Cambios';
+    document.getElementById('um_usuarioOriginal').value=usuario;
+    document.getElementById('um_nombre').value=u['Nombre'];
+    document.getElementById('um_usuario').value=u['Usuario'];
+    document.getElementById('um_usuario').disabled=true;
+    document.getElementById('um_email').value=u['Email'];
+    document.getElementById('um_perfil').value=u['Perfil'];
+    document.getElementById('um_activo').value=u['Activo'];
+    document.getElementById('um_passGroup').style.display='none';
+    document.getElementById('um_passResetGroup').style.display='block';
+    document.getElementById('um_pass').required=false;
   }
+  document.getElementById('userModalOverlay').classList.add('open');
+}
 
-  async function checkConexion() {
-    setStatus('sincronizando');
-    try {
-      const res = await fetch('https://oportunidadesar.javier-sd-atos.workers.dev?target=oportunidades&action=get', {
-        method: 'GET', redirect: 'follow'
-      });
-      const text = await res.text();
-      // Si la respuesta contiene "ok" es un JSON válido de Apps Script
-      setStatus(text.includes('"ok"') ? 'conectado' : 'error');
-    } catch(e) {
-      // Si hay error de red real
-      setStatus('error');
+function closeUserModal() { document.getElementById('userModalOverlay').classList.remove('open'); }
+
+async function handleUserModalSubmit(e) {
+  e.preventDefault();
+  const mode=document.getElementById('um_mode').value;
+  const btn=document.getElementById('um_btn');
+  btn.disabled=true; btn.textContent='Guardando...';
+  try {
+    if (mode==='new') {
+      const pass=document.getElementById('um_pass').value;
+      if (pass.length<6) { showModalAlert('La contraseña debe tener al menos 6 caracteres.'); return; }
+      const hashed=await sha256(pass);
+      const result=await authApiCall({action:'add',data:JSON.stringify({Nombre:document.getElementById('um_nombre').value,Usuario:document.getElementById('um_usuario').value,Email:document.getElementById('um_email').value,Contraseña:hashed,Perfil:document.getElementById('um_perfil').value,Activo:document.getElementById('um_activo').value})});
+      if (result.ok) { showAlert('usuariosAlert','✓ Usuario creado correctamente.','success'); closeUserModal(); loadUsuarios(); }
+      else showModalAlert('Error al crear el usuario.');
+    } else {
+      const usuario=document.getElementById('um_usuarioOriginal').value;
+      const data={Nombre:document.getElementById('um_nombre').value,Email:document.getElementById('um_email').value,Perfil:document.getElementById('um_perfil').value,Activo:document.getElementById('um_activo').value};
+      const newPass=document.getElementById('um_passReset').value;
+      if (newPass) { if(newPass.length<6){showModalAlert('La contraseña debe tener al menos 6 caracteres.');return;} data['Contraseña']=await sha256(newPass); }
+      const result=await authApiCall({action:'update',usuario,data:JSON.stringify(data)});
+      if (result.ok) { showAlert('usuariosAlert','✓ Usuario actualizado correctamente.','success'); closeUserModal(); loadUsuarios(); }
+      else showModalAlert('Error al guardar.');
     }
-  }
+  } catch(err) { showModalAlert('Error de conexión.'); }
+  finally { btn.disabled=false; btn.textContent=mode==='new'?'Crear Usuario':'Guardar Cambios'; }
+}
 
+function showModalAlert(msg) {
+  const box=document.getElementById('userModalAlert');
+  box.textContent=msg; box.className='alert alert-error show';
+  document.getElementById('um_btn').disabled=false;
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+(function init() {
+  // Auth check
+  const session = getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+
+  // User info
+  document.getElementById('userAvatar').textContent = session.nombre.split(' ').map(n=>n[0]).slice(0,2).join('');
+  document.getElementById('userName').textContent   = session.nombre.split(' ').slice(0,2).join(' ');
+  document.getElementById('userPerfil').textContent = session.perfil;
+  if (session.perfil==='admin') document.getElementById('btnUsuarios').style.display='flex';
+
+  // Sidebar toggle
+  document.getElementById('toggleBtn').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('collapsed'));
+
+  // Pre-fill responsable
+  document.getElementById('n_responsable').value = session.nombre;
+  if (session.perfil!=='admin') document.getElementById('n_responsable').readOnly=true;
+
+  // Connection check
   checkConexion();
   setInterval(checkConexion, 60000);
-  window.setConnectionStatus = setStatus;
+
+  // Load home data
+  renderHome();
+})();
 </script>
 </body>
 </html>
