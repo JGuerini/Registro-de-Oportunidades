@@ -887,7 +887,7 @@ async function initModSearch() {
   document.getElementById('modSearch').style.display='block';
   document.getElementById('modEditForm').style.display='none';
   document.getElementById('modLoadingSearch').style.display='flex';
-  _modRows = await getData(true);
+  _modRows = await getData();
   document.getElementById('modLoadingSearch').style.display='none';
   doModSearch();
 }
@@ -1007,7 +1007,7 @@ async function initTabla() {
   document.getElementById('todasLoading').style.display='flex';
   document.getElementById('todasTable').style.display='none';
   const session = getSession();
-  const raw = await getData(true);
+  const raw = await getData();
   _tablaRows = session && session.perfil==='admin' ? raw : raw.filter(r => r['Responsable']===session.nombre);
   document.getElementById('todasLoading').style.display='none';
   document.getElementById('todasTable').style.display='block';
@@ -1095,7 +1095,7 @@ async function renderStats() {
   document.getElementById('statsContent').style.display='none';
   Object.values(_statsCharts).forEach(c => { try { c.destroy(); } catch(e){} });
   _statsCharts = {};
-  const rows = await getData(true);
+  const rows = await getData();
   document.getElementById('statsLoading').style.display='none';
   document.getElementById('statsContent').style.display='block';
 
