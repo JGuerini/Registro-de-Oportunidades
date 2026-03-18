@@ -184,6 +184,19 @@
     .filters input, .filters select { flex:1;min-width:140px;max-width:220px; }
     .sort-th { cursor:pointer;user-select:none; }
     .sort-th:hover { color:var(--text); }
+    .warn-icon { position:relative; display:inline-flex; align-items:center; margin-left:6px; cursor:default; vertical-align:middle; }
+    .warn-icon svg { color:#ef4444; width:15px; height:15px; flex-shrink:0; }
+    .warn-icon .warn-tooltip {
+      display:none; position:absolute; bottom:calc(100% + 6px); left:50%;
+      transform:translateX(-50%); background:#0f0f0f; color:#fff;
+      padding:5px 10px; border-radius:6px; font-size:11px; font-weight:600;
+      white-space:nowrap; pointer-events:none; z-index:200;
+    }
+    .warn-icon .warn-tooltip::after {
+      content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%);
+      border:4px solid transparent; border-top-color:#0f0f0f;
+    }
+    .warn-icon:hover .warn-tooltip { display:block; }
     .col-id { color:var(--text-muted);font-size:12px; }
     .col-action { text-align:center; }
 
@@ -756,7 +769,7 @@ applyTheme(getSavedTheme());
 // CRM API
 // ══════════════════════════════════════════════
 const API_URL = 'https://oportunidadesar.javier-sd-atos.workers.dev';
-const COLUMNS = ['ID','Cliente','Industria','Práctica/Área','Nombre de la Oportunidad','Descripción','Origen','Responsable','Estado','Fecha de Inicio','Fecha de Entrega','Notas','TCV','Currency','TCV EUR','Tipo de Cambio','% Probabilidad','% PM','Fecha Creación'];
+const COLUMNS = ['ID','Cliente','Industria','Práctica/Área','Nombre de la Oportunidad','Descripción','Origen','Responsable','Estado','Fecha de Inicio','Fecha de Entrega','Notas','TCV','Currency','TCV EUR','Tipo de Cambio','% Probabilidad','% PM','Fecha Creación','Fecha de Modificación'];
 const ESTADOS = ['En Desarrollo','Entregada','Finalizada'];
 const ESTADO_COLORS = {'En Desarrollo':'#fde68a','Entregada':'#93c5fd','Finalizada':'#86efac'};
 const PALETTE = ['#8a38fe','#93c5fd','#fde68a','#86efac','#fca5a5','#fdba74','#e9d5ff','#a7f3d0','#cbd5e1','#f9a8d4','#6ee7b7','#fcd34d','#a5b4fc','#67e8f9','#d9f99d','#c4b5fd','#fb923c','#34d399','#f472b6','#60a5fa'];
@@ -920,6 +933,28 @@ function setStatus(state) {
 // HELPERS
 // ══════════════════════════════════════════════
 function fmtEUR(n) { return '€' + Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function diasSinModificar(r) {
+  const fechaMod  = r['Fecha de Modificación'] || r['Fecha Creación'] || '';
+  const fechaCrea = r['Fecha Creación'] || '';
+  const ref = fechaMod || fechaCrea;
+  if (!ref) return 0;
+  const d = new Date(toInputDate(ref) + 'T12:00:00');
+  if (isNaN(d.getTime())) return 0;
+  return Math.floor((Date.now() - d.getTime()) / 86400000);
+}
+
+function warnIcon(r) {
+  const dias = diasSinModificar(r);
+  if (dias <= 10) return '';
+  return `<span class="warn-icon">
+    <svg fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10 3L2 17h16L10 3z"/>
+      <path stroke-linecap="round" d="M10 9v4M10 14.5v.5" stroke-width="2.5"/>
+    </svg>
+    <span class="warn-tooltip">Última vez modificada hace ${dias} día${dias!==1?'s':''}</span>
+  </span>`;
+}
+
 function canEdit(r) {
   const s = getSession();
   if (!s) return false;
@@ -1222,7 +1257,7 @@ function renderTabla() {
     <tr>
       <td class="col-id">#${r['ID']}</td>
       <td style="font-weight:600">${r['Cliente']||'—'}</td>
-      <td style="max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r['Nombre de la Oportunidad']||'—'}</td>
+      <td style="max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r['Nombre de la Oportunidad']||'—'}${warnIcon(r)}</td>
       <td style="color:var(--text-muted)">${r['Responsable']||'—'}</td>
       <td><span class="badge ${badgeEstado(r['Estado'])}">${r['Estado']||'—'}</span></td>
       <td class="col-action" style="display:flex;gap:6px;justify-content:center"><button class="btn-sm" onclick="verOportunidad('${r['ID']}')" >Ver</button>${canEdit(r)?`<button class="btn-sm" onclick="editFromTabla('${r['ID']}')">Editar</button>`:''}</td>
