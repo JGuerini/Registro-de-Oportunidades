@@ -881,6 +881,12 @@ function setStatus(state) {
 // HELPERS
 // ══════════════════════════════════════════════
 function fmtEUR(n) { return '€' + Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function canEdit(r) {
+  const s = getSession();
+  if (!s) return false;
+  return s.perfil === 'admin' || r['Responsable'] === s.nombre;
+}
+
 function badgeEstado(e) { return {'En Desarrollo':'badge-calificación','Entregada':'badge-propuesta','Finalizada':'badge-ganado'}[e]||''; }
 function showAlert(id, msg, type) {
   const box = document.getElementById(id);
@@ -1130,7 +1136,7 @@ async function initTabla() {
   document.getElementById('todasTable').style.display='none';
   const session = getSession();
   const raw = await getData();
-  _tablaRows = session && session.perfil==='admin' ? raw : raw.filter(r => r['Responsable']===session.nombre);
+  _tablaRows = raw; // Todos ven todas las oportunidades
   document.getElementById('todasLoading').style.display='none';
   document.getElementById('todasTable').style.display='block';
   // Populate responsables
