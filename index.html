@@ -278,6 +278,10 @@
         <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8"><path d="M12 2l4 4-9 9H3v-4L12 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="nav-label">Modificar Oportunidad</span>
       </button>
+      <button class="nav-item" data-page="mis" data-tooltip="Mis Oportunidades" onclick="navigate(this)">
+        <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="6" r="3"/><path d="M2 16c0-3.9 3.1-7 7-7s7 3.1 7 7" stroke-linecap="round"/><path d="M14 11h2M15 10v2" stroke-linecap="round"/></svg>
+        <span class="nav-label">Mis Oportunidades</span>
+      </button>
       <button class="nav-item" data-page="todas" data-tooltip="Ver Todas" onclick="navigate(this)">
         <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="14" height="3" rx="1"/><rect x="2" y="8" width="14" height="3" rx="1"/><rect x="2" y="13" width="14" height="2" rx="1"/></svg>
         <span class="nav-label">Ver Todas</span>
@@ -494,6 +498,7 @@
         </div>
         <div class="filters">
           <input type="text" id="t_search" placeholder="Buscar..." oninput="renderTabla()"/>
+          <select id="t_cliente" onchange="renderTabla()"><option value="">Todos los clientes</option></select>
           <select id="t_estado" onchange="renderTabla()"><option value="">Todos los estados</option><option>En Desarrollo</option><option>Entregada</option><option>Finalizada</option></select>
           <select id="t_practica" onchange="renderTabla()"><option value="">Todas las prácticas</option><option>AM</option><option>CES</option><option>Consultoría</option><option>DWP</option><option>Enablon</option><option>HCI</option><option>IA</option><option>SAP</option><option>Testing</option></select>
           <select id="t_responsable" onchange="renderTabla()"><option value="">Todos los responsables</option></select>
@@ -838,7 +843,7 @@ async function deleteOportunidad(id) {
 // ══════════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════════
-const PAGE_TITLES = { home:'Inicio', nueva:'Nueva Oportunidad', modificar:'Modificar Oportunidad', todas:'Ver Todas', estadisticas:'Estadísticas', perfil:'Mi Perfil', usuarios:'Gestión de Usuarios' };
+const PAGE_TITLES = { home:'Inicio', nueva:'Nueva Oportunidad', modificar:'Modificar Oportunidad', mis:'Mis Oportunidades', todas:'Ver Todas', estadisticas:'Estadísticas', perfil:'Mi Perfil', usuarios:'Gestión de Usuarios' };
 let _chartsRendered = false;
 
 function navigate(btn) {
@@ -853,7 +858,8 @@ function navigate(btn) {
 
 function onPageEnter(page) {
   if (page === 'home')         renderHome();
-  if (page === 'todas')        initTabla();
+  if (page === 'mis')          initMis();
+  else if (page === 'todas')        initTabla();
   if (page === 'estadisticas') renderStats();
   if (page === 'modificar')    initModSearch();
   if (page === 'perfil')       renderPerfil();
@@ -1141,9 +1147,13 @@ async function initTabla() {
   document.getElementById('todasTable').style.display='block';
   // Populate responsables
   const resps = [...new Set(_tablaRows.map(r=>r['Responsable']).filter(Boolean))].sort();
-  const sel = document.getElementById('t_responsable');
-  sel.innerHTML='<option value="">Todos los responsables</option>';
-  resps.forEach(r => sel.innerHTML += `<option>${r}</option>`);
+  const selR = document.getElementById('t_responsable');
+  selR.innerHTML='<option value="">Todos los responsables</option>';
+  resps.forEach(r => selR.innerHTML += `<option>${r}</option>`);
+  const clientes = [...new Set(_tablaRows.map(r=>r['Cliente']).filter(Boolean))].sort();
+  const selC = document.getElementById('t_cliente');
+  selC.innerHTML='<option value="">Todos los clientes</option>';
+  clientes.forEach(cl => selC.innerHTML += `<option>${cl}</option>`);
   renderTabla();
 }
 
@@ -1157,7 +1167,9 @@ function renderTabla() {
   const est  = document.getElementById('t_estado').value;
   const prac = document.getElementById('t_practica').value;
   const resp = document.getElementById('t_responsable').value;
+  const cli  = document.getElementById('t_cliente').value;
   const rows = _tablaRows.filter(r => {
+    if (cli  && r['Cliente']!==cli) return false;
     if (est  && r['Estado']!==est) return false;
     if (prac && r['Práctica/Área']!==prac) return false;
     if (resp && r['Responsable']!==resp) return false;
@@ -1496,6 +1508,58 @@ function showModalAlert(msg) {
   // Load home data
   renderHome();
 })();
+
+// ══════════════════════════════════════════════
+// MIS OPORTUNIDADES
+// ══════════════════════════════════════════════
+let _misRows=[], _misSortKey='ID', _misSortDir=-1;
+
+async function initMis() {
+  document.getElementById('misLoading').style.display='flex';
+  document.getElementById('misTable').style.display='none';
+  const session = getSession();
+  const raw = await getData();
+  _misRows = raw.filter(r => r['Responsable'] === session.nombre);
+  document.getElementById('misLoading').style.display='none';
+  document.getElementById('misTable').style.display='block';
+  renderMis();
+}
+
+async function misRefresh() { invalidateCache(); await initMis(); }
+
+function sortMis(key) {
+  if (_misSortKey===key) _misSortDir*=-1; else { _misSortKey=key; _misSortDir=1; }
+  renderMis();
+}
+
+function renderMis() {
+  const q   = document.getElementById('mis_search').value.trim().toLowerCase();
+  const est = document.getElementById('mis_estado').value;
+  const rows = _misRows.filter(r => {
+    if (est && r['Estado']!==est) return false;
+    if (q) { const h=[r['ID'],r['Cliente'],r['Nombre de la Oportunidad']].join(' ').toLowerCase(); if(!h.includes(q)) return false; }
+    return true;
+  }).sort((a,b) => {
+    let av=a[_misSortKey]||'', bv=b[_misSortKey]||'';
+    if(!isNaN(parseFloat(av))&&!isNaN(parseFloat(bv))) return (parseFloat(av)-parseFloat(bv))*_misSortDir;
+    return String(av).localeCompare(String(bv))*_misSortDir;
+  });
+  document.getElementById('misCount').textContent = `${rows.length} oportunidad${rows.length!==1?'es':''}`;
+  const body=document.getElementById('misBody'), empty=document.getElementById('misEmpty');
+  if (rows.length===0) { body.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  body.innerHTML = rows.map(r=>`
+    <tr>
+      <td class="col-id">#${r['ID']}</td>
+      <td style="font-weight:600">${r['Cliente']||'—'}</td>
+      <td style="max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r['Nombre de la Oportunidad']||'—'}</td>
+      <td><span class="badge ${badgeEstado(r['Estado'])}">${r['Estado']||'—'}</span></td>
+      <td class="col-action" style="display:flex;gap:6px;justify-content:center">
+        <button class="btn-sm" onclick="verOportunidad('${r['ID']}')">Ver</button>
+        <button class="btn-sm" onclick="editFromTabla('${r['ID']}')">Editar</button>
+      </td>
+    </tr>`).join('');
+}
 </script>
 </body>
 </html>
