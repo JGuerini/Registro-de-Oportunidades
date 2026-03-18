@@ -8,10 +8,10 @@
   <style>
     .btn-sm { font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;padding:5px 12px;border-radius:7px;border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--text);transition:border-color 0.2s; }
     .btn-sm:hover { border-color:var(--text); }
-    .modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center; }
+    .modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center; }
     .modal-overlay.open { display:flex; }
-    .modal { background:#fff;border-radius:20px;padding:32px;width:100%;max-width:440px;border:1px solid var(--border); }
-    .modal-title { font-size:16px;font-weight:700;margin-bottom:4px; }
+    .modal { background:var(--surface);color:var(--text);border-radius:20px;padding:32px;width:100%;max-width:440px;border:1px solid var(--border);box-shadow:0 8px 32px rgba(0,0,0,0.2); }
+    .modal-title { font-size:16px;font-weight:700;margin-bottom:4px;color:var(--text); }
     .modal-sub { font-size:12px;color:var(--text-muted);margin-bottom:24px; }
     .loading { display:flex;align-items:center;gap:10px;color:var(--text-muted);font-size:13px;padding:40px 0; }
     .spinner { width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:spin 0.7s linear infinite; }
