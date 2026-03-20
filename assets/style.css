@@ -110,7 +110,7 @@ h1 {
 /* CARDS */
 .card {
   background: var(--surface);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 28px;
   border: 1px solid var(--border);
 }
@@ -144,7 +144,7 @@ input, select, textarea {
   font-weight: 500;
   padding: 10px 14px;
   border: 1.5px solid var(--border);
-  border-radius: 10px;
+  border-radius: 5px;
   background: var(--bg);
   color: var(--text);
   outline: none;
@@ -165,7 +165,7 @@ textarea { resize: vertical; min-height: 80px; }
   font-size: 13px;
   font-weight: 600;
   padding: 11px 24px;
-  border-radius: 10px;
+  border-radius: 5px;
   border: none;
   cursor: pointer;
   letter-spacing: 0.02em;
@@ -210,7 +210,7 @@ textarea { resize: vertical; min-height: 80px; }
   display: inline-flex;
   align-items: center;
   padding: 3px 10px;
-  border-radius: 20px;
+  border-radius: 10px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.03em;
@@ -229,7 +229,7 @@ textarea { resize: vertical; min-height: 80px; }
 /* ALERT */
 .alert {
   padding: 12px 16px;
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 13px;
   font-weight: 500;
   margin-bottom: 16px;
@@ -291,7 +291,7 @@ tr:hover td { background: var(--bg); }
 
 .stat-card {
   background: var(--surface);
-  border-radius: 14px;
+  border-radius: 7px;
   padding: 20px 22px;
   border: 1px solid var(--border);
 }
